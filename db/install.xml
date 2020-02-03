@@ -1,17 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="local/followup_email/db" VERSION="20200131" COMMENT="XMLDB file for Moodle local/followup_email"
+<XMLDB PATH="local/followup_email/db" VERSION="20200203" COMMENT="XMLDB file for Moodle local/followup_email"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
   <TABLES>
-    <TABLE NAME="local_followup_email" COMMENT="Default comment for local_followup_email, please edit me">
-      <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
-      </FIELDS>
-      <KEYS>
-        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-      </KEYS>
-    </TABLE>
     <TABLE NAME="followup_email" COMMENT="table for followup_email instances">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
@@ -19,11 +11,19 @@
         <FIELD NAME="cmid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="ID of course module that needs to be complete for this email to be sent"/>
         <FIELD NAME="email_subject" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="Subject line of email to be sent"/>
         <FIELD NAME="email_body" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="Body content of email"/>
-        <FIELD NAME="followup_time" TYPE="int" LENGTH="20" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="time_abstract_followup" TYPE="int" LENGTH="20" NOTNULL="true" SEQUENCE="false" COMMENT="A length of time after user completes cm to send follow-up email (e.g. 1 day, 3 months)"/>
+        <FIELD NAME="time_completed" TYPE="int" LENGTH="20" NOTNULL="false" SEQUENCE="false" COMMENT="Time user completed course module"/>
+        <FIELD NAME="time_actual_followup" TYPE="int" LENGTH="20" NOTNULL="false" SEQUENCE="false" COMMENT="Actual time the email will be sent"/>
         <FIELD NAME="groupid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Followup email will be sent to users in this group"/>
+        <FIELD NAME="usermodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="courseid" TYPE="foreign" FIELDS="courseid" REFTABLE="course" REFFIELDS="id" COMMENT="References course id"/>
+        <KEY NAME="cmid" TYPE="foreign" FIELDS="cmid" REFTABLE="course_modules" REFFIELDS="id" COMMENT="References course module id"/>
+        <KEY NAME="usermodified" TYPE="foreign" FIELDS="usermodified" REFTABLE="user" REFFIELDS="id"/>
       </KEYS>
     </TABLE>
   </TABLES>
