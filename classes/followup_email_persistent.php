@@ -30,13 +30,7 @@ class followup_email_persistent extends persistent
             'email_body' => array(
                 'type' => PARAM_RAW,
             ),
-            'time_abstract_followup' => array(
-                'type' => PARAM_INT,
-            ),
-            'time_completed' => array(
-                'type' => PARAM_INT,
-            ),
-            'time_actual_followup' => array(
+            'interval' => array(
                 'type' => PARAM_INT,
             ),
             'groupid' => array(

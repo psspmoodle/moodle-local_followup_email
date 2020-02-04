@@ -39,9 +39,11 @@ require_login($course);
 $context = context_course::instance($course->id);
 $courseinfo = get_fast_modinfo($course->id);
 
+$editurl = new moodle_url('/local/followup_email/edit.php', array('courseid' => $courseid));
+
 if (!$persistents = (new followup_email_persistent())::get_records()) {
     $output = 'There are no Followup emails configured. ';
-    $output .= '<a href="/moodle/local/followup_email/edit.php?courseid=' . $courseid . '">Add one</a>';
+    $output .= '<a href="' . $editurl . '">Add one</a>';
 } else {
 
     $output = '<div class="table"><table>';

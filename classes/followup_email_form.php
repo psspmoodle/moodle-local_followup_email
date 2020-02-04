@@ -26,22 +26,46 @@ class followup_email_form extends persistent {
         $mform->setConstant('courseid', $this->_customdata['courseid']);
 
         //List of course modules
-        $mform->addElement('select', 'type', 'Activity', $this->_customdata['cms']);
+        $mform->addElement('select', 'cmid', 'Activity', $this->get_activities($this->_customdata['courseid']));
 
         // When it should be sent.
-        $mform->addElement('duration', 'time_abstract_followup', 'When do you want to send the followup email?');
+        $mform->addElement('duration', 'interval', 'When do you want to send the followup email?');
 
         // Location.
         $mform->addElement('text', 'email_subject', 'Email subject', $attributes = array('size'=>'50'));
 
         // Message.
-        $mform->addElement('editor', 'email_body', 'Email body');
+//        $mform->addElement('editor', 'email_body', 'Email body');
 
         // Groups
-        $mform->addElement('select', 'type', 'Group', $this->_customdata['groups']);
+        $mform->addElement('select', 'groupid', 'Group', $this->get_groups($this->_customdata['courseid']));
 
         $this->add_action_buttons();
     }
+
+    function get_activities($courseid) {
+        $courseinfo = get_fast_modinfo($courseid);
+        $cms = array();
+        foreach ($courseinfo->get_cms() as $cm) {
+            $cms[$cm->id] = $cm->name;
+        }
+        $selectoption = array(0 => get_string('selectoption', 'local_followup_email'));
+        $cms = $selectoption + $cms;
+        return $cms;
+    }
+
+    function get_groups($courseid) {
+        $groupobjects = groups_get_all_groups($courseid);
+        $groups = array();
+        foreach ($groupobjects as $group) {
+            $groups[$group->id] = $group->name;
+        }
+        $selectoption = array(0 => get_string('selectoption', 'local_followup_email'));
+        $groups = $selectoption + $groups;
+        return $groups;
+    }
+
+
 
 
 }

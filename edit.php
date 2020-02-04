@@ -16,70 +16,78 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Followup email admin page
+ * Followup Email edit page
  *
  * @copyright 2020 Matt Donnelly
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use core\notification;
 use local_followup_email\followup_email_form;
+use local_followup_email\followup_email_persistent;
 
 require_once("../../config.php");
 require_once("classes/followup_email_form.php");
 
 $courseid = required_param('courseid', PARAM_INT);
 // if followup_id is 0, we are creating a new followup email
-$followup_id = optional_param('id', 0, PARAM_INT);
+$followup_id = optional_param('id', null, PARAM_INT);
 
-$PAGE->set_url('/local/followup_email.php', array('id'=>$followup_id, 'courseid' => $courseid));
-
+$PAGE->set_url('/local/followup_email/edit.php', array('courseid' => $courseid, 'id'=>$followup_id));
 $course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
-
 require_login($course);
 $context = context_course::instance($course->id);
 
+// Instantiate persistent
+$persistent = null;
+if (!empty($followup_id)) {
+    $persistent = new followup_email_persistent($followup_id);
+}
+
+// Page setup
+$PAGE->set_pagelayout('incourse');
 $str = $followup_id ? 'edititem' : 'addnewitem';
 $title = get_string($str, 'local_followup_email');
-
-
-$PAGE->set_pagelayout('incourse');
-
 $PAGE->set_title($title);
 $PAGE->set_heading($course->fullname);
 $PAGE->navbar->add($title);
 
-$groupobjects = groups_get_all_groups($course->id);
-$groups = array();
-foreach ($groupobjects as $group) {
-    $groups[$group->id] = $group->name;
-}
-
-$courseinfo = get_fast_modinfo($course->id);
-$cms = array();
-foreach ($courseinfo->get_cms() as $cm) {
-    $cms[$cm->id] = $cm->name;
-}
-
-
+// Assemble customdata for persistent
 $customdata = [
-    'persistent' => null,  // An instance, or null.
+    'persistent' => $persistent,  // An instance, or null.
     'userid' => $USER->id,         // For the hidden userid field.
-    'courseid' => $course->id,
-    'cms' => $cms,
-    'groups' => $groups
+    'courseid' => $course->id
 ];
 
-$feform = new followup_email_form($PAGE->url->out(false), $customdata);
+$followup_form = new followup_email_form($PAGE->url->out(false), $customdata);
 
-if ($feform->is_cancelled()) {
-    // You need this section if you have a cancel button on your form
-    // here you tell php what to do if your user presses cancel
-    // probably a redirect is called for!
-    // PLEASE NOTE: is_cancelled() should be called before get_data().
-    redirect(new moodle_url('/local/followup_email/index.php', array('id' => $courseid)));
+if ($followup_form->is_cancelled()) {
+    redirect(new moodle_url('/local/followup_email/index.php', array('courseid' => $courseid)));
+} else {
+    // Get the data. This ensures that the form was validated.
+    if (($data = $followup_form->get_data())) {
+
+        try {
+            if (empty($data->id)) {
+                // If we don't have an ID, we know that we must create a new record.
+                $persistent = new followup_email_persistent(0, $data);
+                $persistent->create();
+            } else {
+                // We had an ID, this means that we are going to update a record.
+                $persistent->from_record($data);
+                $persistent->update();
+            }
+            notification::success(get_string('changessaved'));
+
+        } catch (Exception $e) {
+            notification::error($e->getMessage());
+        }
+
+        redirect(new moodle_url('/local/followup_email/index.php', array('courseid' => $courseid)));
+    }
 }
 
 echo $OUTPUT->header();
 echo $OUTPUT->heading($title);
-$feform->display();
+$followup_form->display();
 echo $OUTPUT->footer();
