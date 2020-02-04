@@ -27,9 +27,9 @@ use local_followup_email\followup_email_form;
 require_once("../../config.php");
 require_once("classes/followup_email_form.php");
 
-$followup_id = required_param('id', PARAM_INT);
 $courseid = required_param('courseid', PARAM_INT);
-
+// if followup_id is 0, we are creating a new followup email
+$followup_id = optional_param('id', 0, PARAM_INT);
 
 $PAGE->set_url('/local/followup_email.php', array('id'=>$followup_id, 'courseid' => $courseid));
 
@@ -38,7 +38,9 @@ $course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
 require_login($course);
 $context = context_course::instance($course->id);
 
-$title = get_string('pluginname', 'local_followup_email');
+$str = $followup_id ? 'edititem' : 'addnewitem';
+$title = get_string($str, 'local_followup_email');
+
 
 $PAGE->set_pagelayout('incourse');
 

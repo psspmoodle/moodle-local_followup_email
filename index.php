@@ -38,31 +38,35 @@ require_login($course);
 
 $context = context_course::instance($course->id);
 $courseinfo = get_fast_modinfo($course->id);
-$persistents = (new followup_email_persistent())::get_records();
 
-$output = '<div class="table"><table>';
-$renderer = $PAGE->get_renderer('core');
+if (!$persistents = (new followup_email_persistent())::get_records()) {
+    $output = 'There are no Followup emails configured. ';
+    $output .= '<a href="/moodle/local/followup_email/edit.php?courseid=' . $courseid . '">Add one</a>';
+} else {
 
-$rows = array();
-foreach ($persistents as $record)
-{
-    $row = array(
-        'id' => $record->get('id'),
-        'title' => $record->get('email_subject'),
-        'cmid' => $record->get('cmid'),
-        'courseid' => $courseid
-    );
+    $output = '<div class="table"><table>';
+    $renderer = $PAGE->get_renderer('core');
 
-    $coursemodule = $courseinfo->get_cm($record->get('cmid'));
-    $row['coursemodule'] = $coursemodule->name;
-    $rows[] = $row;
+    $rows = array();
+    foreach ($persistents as $record) {
+        $row = array(
+            'id' => $record->get('id'),
+            'title' => $record->get('email_subject'),
+            'cmid' => $record->get('cmid'),
+            'courseid' => $courseid
+        );
+
+        $coursemodule = $courseinfo->get_cm($record->get('cmid'));
+        $row['coursemodule'] = $coursemodule->name;
+        $rows[] = $row;
+    }
+
+    foreach ($rows as $row) {
+        $templatecontext = new followup_email_item($row);
+        $output .= $renderer->render($templatecontext);
+    }
+    $output .= '</table></div>';
 }
-
-foreach ($rows as $row) {
-    $templatecontext = new followup_email_item($row);
-    $output .= $renderer->render($templatecontext);
-}
-$output .= '</table></div>';
 
 $title = get_string('pluginname', 'local_followup_email');
 
