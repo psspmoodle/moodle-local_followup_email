@@ -11,7 +11,8 @@
         <FIELD NAME="cmid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="ID of course module that needs to be complete for this email to be sent"/>
         <FIELD NAME="email_subject" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="Subject line of email to be sent"/>
         <FIELD NAME="email_body" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="Body content of email"/>
-        <FIELD NAME="interval" TYPE="int" LENGTH="20" NOTNULL="false" SEQUENCE="false" COMMENT="Interval of time after course module completion eamil will be sent"/>
+        <FIELD NAME="email_body_format" TYPE="int" LENGTH="2" NOTNULL="true" SEQUENCE="false" COMMENT="Format of email_body"/>
+        <FIELD NAME="followup_interval" TYPE="int" LENGTH="20" NOTNULL="true" SEQUENCE="false" COMMENT="Interval of time after course module completion eamil will be sent"/>
         <FIELD NAME="groupid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Followup email will be sent to users in this group"/>
         <FIELD NAME="usermodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>

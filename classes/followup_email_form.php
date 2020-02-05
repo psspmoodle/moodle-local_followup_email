@@ -17,7 +17,7 @@ class followup_email_form extends persistent {
     public function definition()
     {
         $mform = $this->_form;
-
+        $courseid = $this->_customdata['courseid'];
         // User ID.
         $mform->addElement('hidden', 'userid');
         $mform->setConstant('userid', $this->_customdata['userid']);
@@ -26,7 +26,7 @@ class followup_email_form extends persistent {
         $mform->setConstant('courseid', $this->_customdata['courseid']);
 
         //List of course modules
-        $mform->addElement('select', 'cmid', 'Activity', $this->get_activities($this->_customdata['courseid']));
+        $mform->addElement('select', 'cmid', 'Activity', $this->get_activities($courseid));
 
         // When it should be sent.
         $mform->addElement('duration', 'interval', 'When do you want to send the followup email?');
@@ -35,10 +35,10 @@ class followup_email_form extends persistent {
         $mform->addElement('text', 'email_subject', 'Email subject', $attributes = array('size'=>'50'));
 
         // Message.
-//        $mform->addElement('editor', 'email_body', 'Email body');
+        $mform->addElement('editor', 'email_body', 'Email body');
 
         // Groups
-        $mform->addElement('select', 'groupid', 'Group', $this->get_groups($this->_customdata['courseid']));
+        $mform->addElement('select', 'groupid', 'Group', $this->get_groups($courseid));
 
         $this->add_action_buttons();
     }
