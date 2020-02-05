@@ -1,0 +1,21 @@
+
+<div class="table-responsive">
+    <table class="table">
+        <thead>
+        <tr>
+            <th class="font-weight-bold">Email subject line</th>
+            <th class="font-weight-bold">Course module whose completion will trigger email</th>
+            <th class="font-weight-bold">Group</th>
+            <th class="font-weight-bold">Modify</th>
+        </tr>
+        </thead>
+        {{#rows}}
+        <tr>
+            <td>{{title}}</td>
+            <td>{{coursemodule}}</td>
+            <td>{{# group}}{{group}}{{/group}}</td>
+            <td><a href="{{editurl}}">Edit</a> | <a href="{{delete}}">Delete</a></td>
+        </tr>
+        {{/rows}}
+    </table>
+</div>

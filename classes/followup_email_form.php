@@ -29,7 +29,7 @@ class followup_email_form extends persistent {
         $mform->addElement('select', 'cmid', 'Activity', $this->get_activities($courseid));
 
         // When it should be sent.
-        $mform->addElement('duration', 'interval', 'When do you want to send the followup email?');
+        $mform->addElement('duration', 'followup_interval', 'When do you want to send the followup email?');
 
         // Location.
         $mform->addElement('text', 'email_subject', 'Email subject', $attributes = array('size'=>'50'));
