@@ -32,13 +32,15 @@ class followup_email_form extends persistent {
         $mform->addElement('duration', 'followup_interval', 'When do you want to send the followup email?');
 
         // Location.
-        $mform->addElement('text', 'email_subject', 'Email subject', $attributes = array('size'=>'50'));
+        $mform->addElement('text', 'email_subject', 'Email subject', $attributes = array('size' => '50'));
 
         // Message.
         $mform->addElement('editor', 'email_body', 'Email body');
 
         // Groups
-        $mform->addElement('select', 'groupid', 'Group', $this->get_groups($courseid));
+        if ($groups = $this->get_groups($courseid)) {
+            $mform->addElement('select', 'groupid', 'Group', $groups);
+        };
 
         $this->add_action_buttons();
     }
@@ -60,8 +62,10 @@ class followup_email_form extends persistent {
         foreach ($groupobjects as $group) {
             $groups[$group->id] = $group->name;
         }
-        $selectoption = array(0 => get_string('selectoption', 'local_followup_email'));
-        $groups = $selectoption + $groups;
+        if ($groups) {
+            $selectoption = array(0 => get_string('selectoption', 'local_followup_email'));
+            $groups = $selectoption + $groups;
+        }
         return $groups;
     }
 

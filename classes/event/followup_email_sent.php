@@ -15,15 +15,38 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version information
+ * The followup email sent event.
  *
  * @package    local_followup_email
  * @copyright  2020 Matt Donnelly
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+namespace local_followup_email\event;
+use core\event\base;
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->component = 'local_followup_email'; // Full name of the plugin (used for diagnostics).
-$plugin->version  = 2020020611;    // The current module version (Date: YYYYMMDDXX).
-$plugin->requires = 2019051100;    // Requires this Moodle version.
+/**
+ * The welcome_email_sent event class.
+ *
+ * @since     Moodle 3.7
+ * @copyright 2020 Matt Donnelly
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ **/
+
+class followup_email_sent extends base {
+
+    protected function init() {
+        $this->data['crud'] = 'r';
+        $this->data['edulevel'] = self::LEVEL_OTHER;
+    }
+
+    public static function get_name() {
+        return get_string('followupemailsent', 'local_followup_email');
+    }
+
+    public function get_description() {
+        return "A followup email was sent to user {$this->userid}.";
+    }
+
+}
