@@ -31,7 +31,7 @@ require_once("classes/followup_email_form.php");
 
 $courseid = required_param('courseid', PARAM_INT);
 // if followup_id is 0, we are creating a new followup email
-$followup_id = optional_param('id', null, PARAM_INT);
+$followup_id = optional_param('followupid', null, PARAM_INT);
 
 $PAGE->set_url('/local/followup_email/edit.php', array('courseid' => $courseid, 'id'=>$followup_id));
 $course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);

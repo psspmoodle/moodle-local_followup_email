@@ -25,6 +25,7 @@ class send_followup_email extends scheduled_task
 
     /**
      * Execute the task.
+     * @throws \moodle_exception
      */
     public function execute() {
         global $DB;
@@ -32,17 +33,22 @@ class send_followup_email extends scheduled_task
         foreach ($records as $record) {
             $course = $DB->get_record('course', array('id' => $record->get('courseid')), '*', MUST_EXIST);
             $cm = (get_fast_modinfo($course->id))->get_cm($record->get('cmid'));
+            // This will be 0 if a group wasn't selected
             $groupid = $record->get('groupid');
             $completioninfo = new completion_info($course);
-            $users = $completioninfo->get_tracked_users(null, null, $groupid);
+            $users = $completioninfo->get_tracked_users(null, null, $groupid ?? null);
             foreach ($users as $user) {
+                // Get completion data for user for specified course module
                 $cmdata = $completioninfo->get_data($cm, false, $user->id);
+                // Get the interval
                 $interval = $record->get('followup_interval');
-                $intervalelapsed = ($cmdata->timemodified + $interval) > time();
-                if ($cmdata->completionstate == 1 && $intervalelapsed) {
-                    $fe_status = new followup_email_status_persistent();
-                    $fe_status->get_record(array('userid' => $user->id, 'followup_email_id' => $record->get('id')));
-                    $fe_status->set('email_sent', 1);
+                // Has the interval since the user completed the course module elapsed?
+                if (($cmdata->timemodified + $interval) > time()) {
+                    // Instantiate a persistent for the status table
+                    $email_status = new followup_email_status_persistent();
+                    // Get the record of the user for whom we want to update email_sent
+                    $email_status->get_record_by_userid($user->id, $groupid);
+                    $email_status->set('email_sent', 1);
                     $contact = core_user::get_noreply_user();
                     $subject = $record->get('email_subject');
                     $messagehtml = format_text($record->get('email_body'), FORMAT_HTML, array('trusted' => true));
