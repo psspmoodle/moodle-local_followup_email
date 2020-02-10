@@ -60,18 +60,7 @@ class followup_email_persistent extends persistent
 
     public function after_create()
     {
-        global $DB;
-        $courseid = $this->get('courseid');
-        $course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
-        // This will be 0 if a group wasn't selected
-        $groupid = $this->get('groupid');
-        $completioninfo = new completion_info($course);
-        $users = $completioninfo->get_tracked_users(null, null, $groupid ?? null);
-        $status = new followup_email_status_persistent();
-        foreach ($users as $user) {
-
-        }
-
+        $status = followup_email_status_persistent::add_tracked_users($this);
     }
 
 }

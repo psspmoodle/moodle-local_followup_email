@@ -3,6 +3,7 @@
 
 namespace local_followup_email;
 
+use completion_info;
 use core\persistent;
 
 class followup_email_status_persistent extends persistent
@@ -16,7 +17,8 @@ class followup_email_status_persistent extends persistent
      *
      * @return array
      */
-    protected static function define_properties() {
+    protected static function define_properties()
+    {
         return array(
             'userid' => array(
                 'type' => PARAM_INT
@@ -26,8 +28,37 @@ class followup_email_status_persistent extends persistent
             ),
             'email_sent' => array(
                 'type' => PARAM_BOOL
+            ),
+            'email_sent_time' => array(
+                'type' => PARAM_INT
             )
         );
+    }
+
+    /**
+     * Add users that should be sent a follow up email. This could be every user in the course (no groupid specified)
+     * or just users in a group.
+     *
+     * @param int $courseid Course id
+     * @param int $groupid Group id Will be 0 if no group was selected
+     * @return status[]
+     * @throws \dml_exception
+     */
+    public static function add_tracked_users(followup_email_persistent $persistent)
+    {
+        global $DB;
+        $courseid = $persistent->get('courseid');
+        $course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
+        $completioninfo = new completion_info($course);
+        $users = $completioninfo->get_tracked_users(null, null, $groupid ?? null);
+        foreach ($users as $user) {
+            $status = new self();
+            $status->set('userid', $user->id);
+            $status->set('followup_email_id', $persistent->get('id'));
+            $status->set('email_sent', 0);
+            $status->create();
+        }
+
     }
 
     /**
@@ -38,7 +69,8 @@ class followup_email_status_persistent extends persistent
      * @return status[]
      * @throws \dml_exception
      */
-    public static function get_record_by_userid($userid, $groupid = 0) {
+    public static function get_record_by_userid($userid, $groupid = 0)
+    {
         global $DB;
 
         $sql = 'SELECT fes.*
