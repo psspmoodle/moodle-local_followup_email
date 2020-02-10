@@ -1,0 +1,20 @@
+<div class="table-responsive mt-3">
+    <table class="table">
+        <thead>
+        <tr>
+            <th class="font-weight-bold">User</th>
+            <th class="font-weight-bold">Email sent?</th>
+            <th class="font-weight-bold">Time email will be sent</th>
+            <th class="font-weight-bold">Time email was sent</th>
+        </tr>
+        </thead>
+        {{#rows}}
+            <tr>
+                <td>{{userid}}</td>
+                <td>{{email_sent}}</td>
+                <td>{{email_to_be_sent}}</td>
+                <td>{{email_time_sent}}</td>
+            </tr>
+        {{/rows}}
+    </table>
+</div>

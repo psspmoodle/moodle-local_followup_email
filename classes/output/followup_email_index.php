@@ -36,6 +36,7 @@ class followup_email_index implements renderable, templatable
                 'title' => $record->get('email_subject'),
                 'coursemodule' => ($this->cminfo->get_cm($record->get('cmid')))->name,
                 'group' => $record->get('groupid'),
+                'statusurl' => (new moodle_url('/local/followup_email/status.php', $params))->out(false),
                 'editurl' => (new moodle_url('/local/followup_email/edit.php', $params))->out(false),
                 'deleteurl' => (new moodle_url('/local/followup_email/index.php', $params))->out(false)
             );
@@ -51,6 +52,7 @@ class followup_email_index implements renderable, templatable
         $data->rows = $this->records;
         $data->addtext = get_string('addnewfollowupemail','local_followup_email');
         $data->addurl = new moodle_url('/local/followup_email/edit.php', $param);
+        $data->statustext = get_string('status','local_followup_email');
         $data->edittext = get_string('edititem','local_followup_email');
         $data->deletetext = get_string('deleteitem','local_followup_email');
         $data->deleteid = $this->deleteid;

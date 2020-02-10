@@ -60,7 +60,7 @@ class followup_email_persistent extends persistent
 
     public function after_create()
     {
-        $status = followup_email_status_persistent::add_tracked_users($this);
+        followup_email_status_persistent::add_tracked_users($this);
     }
 
 }

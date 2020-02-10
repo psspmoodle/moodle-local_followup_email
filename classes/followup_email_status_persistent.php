@@ -29,7 +29,7 @@ class followup_email_status_persistent extends persistent
             'email_sent' => array(
                 'type' => PARAM_BOOL
             ),
-            'email_sent_time' => array(
+            'email_time_sent' => array(
                 'type' => PARAM_INT,
                 'null' => NULL_ALLOWED
             )
@@ -57,9 +57,28 @@ class followup_email_status_persistent extends persistent
             $status->set('userid', $user->id);
             $status->set('followup_email_id', $persistent->get('id'));
             $status->set('email_sent', 0);
+            $status->set('email_time_sent', 0);
             $status->create();
         }
 
+    }
+
+    public static function get_users_by_followup_email_id($followupid)
+    {
+        global $DB;
+        $persistents = [];
+        $sql = "SELECT fes.*
+                FROM {" . static::TABLE . "} fes
+                JOIN {followup_email} fe
+                ON fe.id = fes.followup_email_id
+                WHERE fe.id = {$followupid}";
+
+        $recordset = $DB->get_recordset_sql($sql);
+        foreach ($recordset as $record) {
+            $persistents[] = new static(0, $record);
+        }
+        $recordset->close();
+        return $persistents;
     }
 
     /**
@@ -74,11 +93,11 @@ class followup_email_status_persistent extends persistent
     {
         global $DB;
 
-        $sql = 'SELECT fes.*
-              FROM {' . static::TABLE . '} fes
+        $sql = "SELECT fes.*
+              FROM {" . static::TABLE . "} fes
               JOIN {followup_email} fe
                 ON fe.id = fes.userid
-             WHERE fes.userid = {$userid}';
+             WHERE fes.userid = {$userid}";
         // If the groupid != 0, students could be in more than one group in the course,
         // so we need further specificity.
         $sql .= $groupid ? " AND fe.groupid = {$groupid}" : '';
@@ -91,6 +110,25 @@ class followup_email_status_persistent extends persistent
         $recordset->close();
 
         return $persistents;
+    }
+
+    public function get_time_to_be_sent(followup_email_persistent $persistent)
+    {
+        global $DB;
+        $course = $DB->get_record('course', array('id' => $persistent->get('courseid')), '*', MUST_EXIST);
+        $completioninfo = new completion_info($course);
+        $cmdata = $completioninfo->get_data($course, false, $this->get('userid'));
+        return $cmdata->timemodified;
+
+    }
+
+    public function get_fullname($userid)
+    {
+        global $DB;
+        $sql = "SELECT CONCAT(u.lastname, ', ', u.firstname) as fullname
+                FROM {user} u
+                WHERE u.id = {$userid}";
+        return ($DB->get_record_sql($sql))->fullname;
     }
 
 }
