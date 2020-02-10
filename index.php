@@ -8,6 +8,7 @@
  */
 
 use local_followup_email\followup_email_persistent;
+use local_followup_email\output\followup_email_index;
 
 require_once("../../config.php");
 require_once("classes/followup_email_form.php");
@@ -20,8 +21,13 @@ $course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
 require_login($course);
 $context = context_course::instance($course->id);
 
-$persistents = (new followup_email_persistent())::get_records();
-$index = new followup_email_index($persistents, $deleteid);
+$persistent = new followup_email_persistent();
+if ($deleteid) {
+    $todelete = $persistent::get_record(array('id' => $deleteid));
+    $todelete->delete();
+}
+$records = $persistent::get_records();
+$index = new followup_email_index($courseid, $records, $deleteid);
 
 $title = get_string('pluginname', 'local_followup_email');
 $PAGE->set_pagelayout('incourse');

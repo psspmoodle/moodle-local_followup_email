@@ -1,9 +1,13 @@
-<div class="table-responsive">
+{{#deleteid}}
+    {{> core/notification }}{{ /core/notification }}
+{{/deleteid}}
+
+<div class="table-responsive mt-3">
     <table class="table">
         <thead>
         <tr>
             <th class="font-weight-bold">Email subject line</th>
-            <th class="font-weight-bold">Course module whose completion will trigger email</th>
+            <th class="font-weight-bold">Related course module</th>
             <th class="font-weight-bold">Group</th>
             <th class="font-weight-bold">Modify</th>
         </tr>
@@ -12,10 +16,13 @@
         <tr>
             <td>{{title}}</td>
             <td>{{coursemodule}}</td>
-            <td>{{# group}}{{group}}{{/group}}</td>
-            <td><a href="{{editurl}}">Edit</a> | <a href="{{deleteurl}}">Delete</a></td>
+            <td>{{#group}}{{group}}{{/group}}</td>
+            <td class="text-center"><a href="{{editurl}}">{{edittext}}</a> | <a href="{{deleteurl}}">{{deletetext}}</a></td>
         </tr>
         {{/rows}}
     </table>
+    <a class="btn btn-primary float-right" href="{{addurl}}">
+        {{addtext}}
+    </a>
 
 </div>

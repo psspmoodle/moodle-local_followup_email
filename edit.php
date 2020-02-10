@@ -46,7 +46,7 @@ if (!empty($followup_id)) {
 
 // Page setup
 $PAGE->set_pagelayout('incourse');
-$str = $followup_id ? 'edititem' : 'addnewitem';
+$str = $followup_id ? 'edititem' : 'addnewfollowupemail';
 $title = get_string($str, 'local_followup_email');
 $PAGE->set_title($title);
 $PAGE->set_heading($course->fullname);

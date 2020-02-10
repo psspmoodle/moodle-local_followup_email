@@ -45,5 +45,15 @@ class followup_email_persistent extends persistent
         );
     }
 
-
+    public function before_delete() {
+        $status = new followup_email_status_persistent();
+        if ($records = $status::get_records(array('followup_email_id' => $this->get('id')))) {
+            foreach ($records as $record) {
+                $record->delete();
+            }
+            return true;
+        }
+        return false;
+    }
+    
 }
