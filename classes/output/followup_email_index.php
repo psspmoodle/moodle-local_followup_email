@@ -31,7 +31,7 @@ class followup_email_index implements renderable, templatable
         }
         $rows = array();
         foreach ($records as $record) {
-            $params = array('followupid' => $record->get('id'), 'courseid' => $this->cminfo->courseid);
+            $params = array('courseid' => $this->cminfo->courseid, 'followupid' => $record->get('id'));
             $row = array(
                 'title' => $record->get('email_subject'),
                 'coursemodule' => ($this->cminfo->get_cm($record->get('cmid')))->name,
@@ -54,7 +54,8 @@ class followup_email_index implements renderable, templatable
         $data->edittext = get_string('edititem','local_followup_email');
         $data->deletetext = get_string('deleteitem','local_followup_email');
         $data->deleteid = $this->deleteid;
-        $data->issuccess = new notification('Followup Email deleted.', 'success');
+        $deleted = get_string('itemdeleted','local_followup_email');
+        $data->issuccess = (new notification($deleted, 'success'))->export_for_template($output);
         return $data;
     }
 }

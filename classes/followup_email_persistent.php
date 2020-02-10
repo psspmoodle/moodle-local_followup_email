@@ -3,6 +3,7 @@
 
 namespace local_followup_email;
 
+use completion_info;
 use core\persistent;
 
 class followup_email_persistent extends persistent
@@ -45,7 +46,8 @@ class followup_email_persistent extends persistent
         );
     }
 
-    public function before_delete() {
+    public function before_delete()
+    {
         $status = new followup_email_status_persistent();
         if ($records = $status::get_records(array('followup_email_id' => $this->get('id')))) {
             foreach ($records as $record) {
@@ -55,5 +57,21 @@ class followup_email_persistent extends persistent
         }
         return false;
     }
-    
+
+    public function after_create()
+    {
+        global $DB;
+        $courseid = $this->get('courseid');
+        $course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
+        // This will be 0 if a group wasn't selected
+        $groupid = $this->get('groupid');
+        $completioninfo = new completion_info($course);
+        $users = $completioninfo->get_tracked_users(null, null, $groupid ?? null);
+        $status = new followup_email_status_persistent();
+        foreach ($users as $user) {
+
+        }
+
+    }
+
 }

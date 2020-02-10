@@ -1,20 +1,5 @@
 <?php
 
-// This file is part of Moodle - http://moodle.org/
-//
-// Moodle is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Moodle is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
-
 /**
  * Followup Email edit page
  *
@@ -31,22 +16,22 @@ require_once("classes/followup_email_form.php");
 
 $courseid = required_param('courseid', PARAM_INT);
 // if followup_id is 0, we are creating a new followup email
-$followup_id = optional_param('followupid', null, PARAM_INT);
+$followupid = optional_param('followupid', null, PARAM_INT);
 
-$PAGE->set_url('/local/followup_email/edit.php', array('courseid' => $courseid, 'id'=>$followup_id));
+$PAGE->set_url('/local/followup_email/edit.php', array('courseid' => $courseid, 'followupid'=>$followupid));
 $course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
 require_login($course);
 $context = context_course::instance($course->id);
 
 // Instantiate persistent
 $persistent = null;
-if (!empty($followup_id)) {
-    $persistent = new followup_email_persistent($followup_id);
+if (!empty($followupid)) {
+    $persistent = new followup_email_persistent($followupid);
 }
 
 // Page setup
 $PAGE->set_pagelayout('incourse');
-$str = $followup_id ? 'edititem' : 'addnewfollowupemail';
+$str = $followupid ? 'edititem' : 'addnewfollowupemail';
 $title = get_string($str, 'local_followup_email');
 $PAGE->set_title($title);
 $PAGE->set_heading($course->fullname);
@@ -78,11 +63,9 @@ if ($followup_form->is_cancelled()) {
                 $persistent->update();
             }
             notification::success(get_string('changessaved'));
-
         } catch (Exception $e) {
             notification::error($e->getMessage());
         }
-
         redirect(new moodle_url('/local/followup_email/index.php', array('courseid' => $courseid)));
     }
 }
