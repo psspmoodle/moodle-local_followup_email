@@ -5,6 +5,7 @@ namespace local_followup_email\output;
 defined('MOODLE_INTERNAL') || die();
 
 use completion_info;
+use context_course;
 use DateTime;
 use local_followup_email\followup_email_persistent;
 use moodle_url;
@@ -44,6 +45,7 @@ class followup_email_status implements renderable, templatable
             return null;
         }
         $rows = array();
+        $context = context_course::instance($this->course->id);
         foreach ($records as $record) {
             $userid = $record->get('userid');
             $completiontime = $this->get_completion_time($userid, true);
@@ -52,6 +54,7 @@ class followup_email_status implements renderable, templatable
                 'completion_time' => $completiontime ? $completiontime : '---',
                 'email_to_be_sent' => $this->get_time_to_be_sent($userid),
                 'email_time_sent' => $record->get('email_time_sent'),
+                'is_enrolled' => is_enrolled($context, $userid)
             );
             $rows[] = $row;
         }
@@ -91,7 +94,6 @@ class followup_email_status implements renderable, templatable
         }
         return false;
     }
-
 
     public function export_for_template(renderer_base $output)
     {

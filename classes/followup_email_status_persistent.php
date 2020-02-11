@@ -4,6 +4,7 @@
 namespace local_followup_email;
 
 use completion_info;
+use context_course;
 use core\persistent;
 
 class followup_email_status_persistent extends persistent
@@ -48,11 +49,11 @@ class followup_email_status_persistent extends persistent
     public static function add_tracked_users(followup_email_persistent $persistent)
     {
         global $DB;
-        $courseid = $persistent->get('courseid');
-        $course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
-        $completioninfo = new completion_info($course);
-        $groupid = $persistent->get('groupid');
-        $users = $completioninfo->get_tracked_users(null, null, $groupid ?? null);
+        $context = context_course::instance($persistent->get('courseid'));
+        // We need to limit the users by group if there is one supplied
+        $users = get_enrolled_users($context, null, $groupid = $persistent->get('groupid'));
+        // If this is an add only (and not preceded by a delete_tracked_users, i.e. in the edit.php form)
+        // we need to check if the user is already tracked
         $userids = static::get_tracked_userids($persistent);
         foreach ($users as $user) {
             if (!in_array($user->id, $userids)) {
@@ -65,9 +66,10 @@ class followup_email_status_persistent extends persistent
         return true;
     }
 
+//    public static function add_tracked_user($userid)
+
     public static function delete_tracked_users(followup_email_persistent $persistent)
     {
-        global $DB;
         $users = static::get_tracked_users($persistent);
         foreach ($users as $user) {
             $user->delete();
@@ -75,16 +77,8 @@ class followup_email_status_persistent extends persistent
         return true;
     }
 
-
-    public static function determine_tracked_users(followup_email_persistent $persistent)
-    {
-        static::delete_tracked_users($persistent);
-        static::add_tracked_users($persistent);
-    }
-
-
     /**
-     * Gets all users in a course who are tracked by the followup email task.
+     * Gets all users in a course or group who are tracked by the followup email task.
      *
      *
      * @param $userid
@@ -93,7 +87,7 @@ class followup_email_status_persistent extends persistent
     public static function get_tracked_users(followup_email_persistent $persistent)
     {
         global $DB;
-        $statuses = [];
+        $statusrecords = [];
         $courseid = $persistent->get('courseid');
         $followupid = $persistent->get('id');
         $sql = "SELECT fes.*
@@ -109,9 +103,9 @@ class followup_email_status_persistent extends persistent
         }
         $records = $DB->get_records_sql($sql);
         foreach ($records as $record) {
-            $statuses[] = new static(0, $record);
+            $statusrecords[] = new static(0, $record);
         }
-        return $statuses;
+        return $statusrecords;
     }
 
     /**

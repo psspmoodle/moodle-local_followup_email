@@ -63,7 +63,8 @@ if ($followup_form->is_cancelled()) {
                 // We had an ID, this means that we are going to update a record.
                 $persistent->from_record($data);
                 $persistent->update();
-                followup_email_status_persistent::determine_tracked_users($persistent);
+                followup_email_status_persistent::delete_tracked_users($persistent);
+                followup_email_status_persistent::add_tracked_users($persistent);
             }
             notification::success(get_string('changessaved'));
         } catch (Exception $e) {
