@@ -39,6 +39,7 @@ class followup_email_persistent extends persistent
             ),
             'groupid' => array(
                 'type' => PARAM_INT,
+                'default' => 0
             ),
             'userid' => array(
                 'type' => PARAM_INT,
@@ -60,7 +61,7 @@ class followup_email_persistent extends persistent
 
     public function after_create()
     {
-        followup_email_status_persistent::add_tracked_users($this);
+        return followup_email_status_persistent::add_tracked_users($this);
     }
 
 }

@@ -3,18 +3,21 @@
         <thead>
         <tr>
             <th class="font-weight-bold">User</th>
+            <th class="font-weight-bold">Activity completion</th>
+            <th class="font-weight-bold">Date email will be sent</th>
             <th class="font-weight-bold">Email sent?</th>
-            <th class="font-weight-bold">Time email will be sent</th>
-            <th class="font-weight-bold">Time email was sent</th>
         </tr>
         </thead>
         {{#rows}}
             <tr>
-                <td>{{userid}}</td>
-                <td>{{email_sent}}</td>
+                <td>{{fullname}}</td>
+                <td>{{completion_time}}</td>
                 <td>{{email_to_be_sent}}</td>
                 <td>{{email_time_sent}}</td>
             </tr>
         {{/rows}}
     </table>
 </div>
+<a class="btn btn-light" href="{{indexurl}}">
+    {{returntext}}
+</a>

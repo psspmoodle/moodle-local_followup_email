@@ -10,4 +10,5 @@ $string['sendfollowupemail'] = 'Send followup email';
 $string['editfollowupemail'] = 'Edit Followup Email';
 $string['itemdeleted'] = 'Followup Email deleted.';
 $string['status'] = 'Status';
+$string['returntoindex'] = 'Back';
 

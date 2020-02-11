@@ -27,11 +27,12 @@ class followup_email_status_persistent extends persistent
                 'type' => PARAM_INT
             ),
             'email_sent' => array(
-                'type' => PARAM_BOOL
+                'type' => PARAM_BOOL,
+                'default' => 0
             ),
             'email_time_sent' => array(
                 'type' => PARAM_INT,
-                'null' => NULL_ALLOWED
+                'default' => 0
             )
         );
     }
@@ -56,8 +57,6 @@ class followup_email_status_persistent extends persistent
             $status = new self();
             $status->set('userid', $user->id);
             $status->set('followup_email_id', $persistent->get('id'));
-            $status->set('email_sent', 0);
-            $status->set('email_time_sent', 0);
             $status->create();
         }
 
@@ -72,7 +71,6 @@ class followup_email_status_persistent extends persistent
                 JOIN {followup_email} fe
                 ON fe.id = fes.followup_email_id
                 WHERE fe.id = {$followupid}";
-
         $recordset = $DB->get_recordset_sql($sql);
         foreach ($recordset as $record) {
             $persistents[] = new static(0, $record);
@@ -110,25 +108,6 @@ class followup_email_status_persistent extends persistent
         $recordset->close();
 
         return $persistents;
-    }
-
-    public function get_time_to_be_sent(followup_email_persistent $persistent)
-    {
-        global $DB;
-        $course = $DB->get_record('course', array('id' => $persistent->get('courseid')), '*', MUST_EXIST);
-        $completioninfo = new completion_info($course);
-        $cmdata = $completioninfo->get_data($course, false, $this->get('userid'));
-        return $cmdata->timemodified;
-
-    }
-
-    public function get_fullname($userid)
-    {
-        global $DB;
-        $sql = "SELECT CONCAT(u.lastname, ', ', u.firstname) as fullname
-                FROM {user} u
-                WHERE u.id = {$userid}";
-        return ($DB->get_record_sql($sql))->fullname;
     }
 
 }
