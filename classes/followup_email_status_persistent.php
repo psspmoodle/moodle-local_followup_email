@@ -41,9 +41,8 @@ class followup_email_status_persistent extends persistent
      * Add users that should be sent a follow up email. This could be every user in the course (no groupid specified)
      * or just users in a group.
      *
-     * @param int $courseid Course id
-     * @param int $groupid Group id Will be 0 if no group was selected
-     * @return status[]
+     * @param followup_email_persistent
+     * @return bool
      * @throws \dml_exception
      */
     public static function add_tracked_users(followup_email_persistent $persistent)
@@ -52,62 +51,89 @@ class followup_email_status_persistent extends persistent
         $courseid = $persistent->get('courseid');
         $course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
         $completioninfo = new completion_info($course);
+        $groupid = $persistent->get('groupid');
         $users = $completioninfo->get_tracked_users(null, null, $groupid ?? null);
+        $userids = static::get_tracked_userids($persistent);
         foreach ($users as $user) {
-            $status = new self();
-            $status->set('userid', $user->id);
-            $status->set('followup_email_id', $persistent->get('id'));
-            $status->create();
+            if (!in_array($user->id, $userids)) {
+                $status = new static();
+                $status->set('userid', $user->id);
+                $status->set('followup_email_id', $persistent->get('id'));
+                $status->create();
+            }
         }
-
+        return true;
     }
 
-    public static function get_users_by_followup_email_id($followupid)
+    public static function delete_tracked_users(followup_email_persistent $persistent)
     {
         global $DB;
-        $persistents = [];
+        $users = static::get_tracked_users($persistent);
+        foreach ($users as $user) {
+            $user->delete();
+        }
+        return true;
+    }
+
+
+    public static function determine_tracked_users(followup_email_persistent $persistent)
+    {
+        static::delete_tracked_users($persistent);
+        static::add_tracked_users($persistent);
+    }
+
+
+    /**
+     * Gets all users in a course who are tracked by the followup email task.
+     *
+     *
+     * @param $userid
+     * @return array of followupids
+     */
+    public static function get_tracked_users(followup_email_persistent $persistent)
+    {
+        global $DB;
+        $statuses = [];
+        $courseid = $persistent->get('courseid');
+        $followupid = $persistent->get('id');
         $sql = "SELECT fes.*
                 FROM {" . static::TABLE . "} fes
                 JOIN {followup_email} fe
                 ON fe.id = fes.followup_email_id
-                WHERE fe.id = {$followupid}";
-        $recordset = $DB->get_recordset_sql($sql);
-        foreach ($recordset as $record) {
-            $persistents[] = new static(0, $record);
+                WHERE fe.courseid = {$courseid} 
+                AND fe.id = {$followupid}";
+        // If the groupid != 0, students could be in more than one group in the course,
+        // so we need further specificity.
+        if ($groupid = $persistent->get('groupid')) {
+            $sql .= " AND fe.groupid = {$groupid}";
         }
-        $recordset->close();
-        return $persistents;
+        $records = $DB->get_records_sql($sql);
+        foreach ($records as $record) {
+            $statuses[] = new static(0, $record);
+        }
+        return $statuses;
     }
 
     /**
-     * Get all records from a userid.
+     * Checks if a user is in any followup email instances in a course
      *
-     * @param string $username The userid.
-     * @param int $groupid Group id, in case the user is in more than one group in a course
-     * @return status[]
-     * @throws \dml_exception
+     * @param $userid
+     * @return array of followupids
      */
-    public static function get_record_by_userid($userid, $groupid = 0)
+
+    public static function get_tracked_user($courseid, $userid)
     {
-        global $DB;
 
-        $sql = "SELECT fes.*
-              FROM {" . static::TABLE . "} fes
-              JOIN {followup_email} fe
-                ON fe.id = fes.userid
-             WHERE fes.userid = {$userid}";
-        // If the groupid != 0, students could be in more than one group in the course,
-        // so we need further specificity.
-        $sql .= $groupid ? " AND fe.groupid = {$groupid}" : '';
-        $persistents = [];
+    }
 
-        $recordset = $DB->get_recordset_sql($sql);
-        foreach ($recordset as $record) {
-            $persistents[] = new static(0, $record);
+    public static function get_tracked_userids(followup_email_persistent $persistent)
+    {
+        $userids = array();
+        $users = static::get_tracked_users($persistent);
+        foreach($users as $user) {
+            $userids[] = $user->get('userid');
         }
-        $recordset->close();
-
-        return $persistents;
+        return $userids;
     }
 
 }

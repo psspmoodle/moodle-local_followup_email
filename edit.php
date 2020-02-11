@@ -10,6 +10,7 @@
 use core\notification;
 use local_followup_email\followup_email_form;
 use local_followup_email\followup_email_persistent;
+use local_followup_email\followup_email_status_persistent;
 
 require_once("../../config.php");
 require_once("classes/followup_email_form.php");
@@ -57,10 +58,12 @@ if ($followup_form->is_cancelled()) {
                 // If we don't have an ID, we know that we must create a new record.
                 $persistent = new followup_email_persistent(0, $data);
                 $persistent->create();
+                followup_email_status_persistent::add_tracked_users($persistent);
             } else {
                 // We had an ID, this means that we are going to update a record.
                 $persistent->from_record($data);
                 $persistent->update();
+                followup_email_status_persistent::determine_tracked_users($persistent);
             }
             notification::success(get_string('changessaved'));
         } catch (Exception $e) {

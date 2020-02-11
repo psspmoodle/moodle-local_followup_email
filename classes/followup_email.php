@@ -4,6 +4,7 @@ namespace local_followup_email;
 
 use context_course;
 use local_cohort_welcome\event\welcome_email_sent;
+use local_followup_email\output\followup_email_status;
 
 class followup_email {
 
@@ -13,7 +14,7 @@ class followup_email {
         $data = $event->get_data();
         $courseid = $data['courseid'];
         $course = $DB->get_record('course', array('id' => $courseid), '*',MUST_EXIST);
-
+        followup_email_status::is_user_tracked($courseid, $data['relateduserid']);
 
 
 

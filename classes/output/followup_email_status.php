@@ -81,18 +81,17 @@ class followup_email_status implements renderable, templatable
     public function get_completion_time($userid, $formatted=false)
     {
         $completioninfo = $this->completioninfo->get_data($this->cm, false, $userid);
-        if (!$formatted) {
-            return $completioninfo->timemodified;
-        } else {
-            $datetime = new DateTime("@$completioninfo->timemodified");
-            return $datetime->format('M d, Y');
+        if ($completioninfo->timemodified > 0) {
+            if (!$formatted) {
+                return $completioninfo->timemodified;
+            } else {
+                $datetime = new DateTime("@$completioninfo->timemodified");
+                return $datetime->format('M d, Y');
+            }
         }
+        return false;
     }
 
-    public function is_user_tracked($userid)
-    {
-
-    }
 
     public function export_for_template(renderer_base $output)
     {
