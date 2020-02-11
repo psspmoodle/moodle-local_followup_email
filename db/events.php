@@ -17,6 +17,10 @@ $observers = array(
     array(
         'eventname'   => '\core\event\user_enrolment_created',
         'callback'    => '\local_followup_email\followup_email::user_enrolment_created'
+    ),
+    array(
+        'eventname'   => '\core\event\groups_member_added',
+        'callback'    => '\local_followup_email\followup_email::groups_member_added'
     )
 
 );

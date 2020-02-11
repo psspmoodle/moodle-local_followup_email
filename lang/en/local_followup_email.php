@@ -11,4 +11,5 @@ $string['editfollowupemail'] = 'Edit Followup Email';
 $string['itemdeleted'] = 'Followup Email deleted.';
 $string['status'] = 'Status';
 $string['returntoindex'] = 'Back';
+$string['deleteunenrolled'] = 'Delete unenrolled users from recipient list?';
 

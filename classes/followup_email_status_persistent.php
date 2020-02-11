@@ -108,18 +108,6 @@ class followup_email_status_persistent extends persistent
         return $statusrecords;
     }
 
-    /**
-     * Checks if a user is in any followup email instances in a course
-     *
-     * @param $userid
-     * @return array of followupids
-     */
-
-    public static function get_tracked_user($courseid, $userid)
-    {
-
-    }
-
     public static function get_tracked_userids(followup_email_persistent $persistent)
     {
         $userids = array();

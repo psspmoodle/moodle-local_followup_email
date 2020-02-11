@@ -61,9 +61,13 @@ if ($followup_form->is_cancelled()) {
                 followup_email_status_persistent::add_tracked_users($persistent);
             } else {
                 // We had an ID, this means that we are going to update a record.
+                $deleteunenrolled = $data->deleteunenrolled;
+                unset($data->deleteunenrolled);
                 $persistent->from_record($data);
                 $persistent->update();
-                followup_email_status_persistent::delete_tracked_users($persistent);
+                if ($deleteunenrolled) {
+                    followup_email_status_persistent::delete_tracked_users($persistent);
+                }
                 followup_email_status_persistent::add_tracked_users($persistent);
             }
             notification::success(get_string('changessaved'));

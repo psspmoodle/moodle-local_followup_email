@@ -11,6 +11,9 @@ class followup_email_form extends persistent {
     /** @var string Persistent class name. */
     protected static $persistentclass = 'local_followup_email\\followup_email_persistent';
 
+    /** @var array Fields to remove from the persistent validation. */
+    protected static $foreignfields = array('deleteunenrolled');
+
     /**
      * Define the form.
      */
@@ -41,6 +44,8 @@ class followup_email_form extends persistent {
         if ($groups = $this->get_groups($courseid)) {
             $mform->addElement('select', 'groupid', 'Group', $groups);
         };
+        $str = get_string('deleteunenrolled', 'local_followup_email');
+        $mform->addElement('advcheckbox', 'deleteunenrolled', $str, null, null, array(0,1));
 
         $this->add_action_buttons();
     }

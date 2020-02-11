@@ -29,9 +29,12 @@ class send_followup_email extends scheduled_task
      */
     public function execute() {
         global $DB;
+        // Get all instances of followup emails
         $records = (new followup_email_persistent())::get_records();
         foreach ($records as $record) {
+            // Get the course records database object
             $course = $DB->get_record('course', array('id' => $record->get('courseid')), '*', MUST_EXIST);
+            // Get the
             $cm = (get_fast_modinfo($course->id))->get_cm($record->get('cmid'));
             // This will be 0 if a group wasn't selected
             $groupid = $record->get('groupid');

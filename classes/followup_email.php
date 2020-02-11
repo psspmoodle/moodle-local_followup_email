@@ -21,8 +21,6 @@ class followup_email {
             followup_email_status_persistent::add_tracked_users($persistent);
         }
 
-
-
 //        $event = welcome_email_sent::create(array(
 //            'context' => context_course::instance($courseid),
 //            'relateduserid' => $data['relateduserid']
@@ -37,6 +35,17 @@ class followup_email {
 
         return true;
     }
+
+    public static function groups_member_added($event)
+    {
+        $data = $event->get_data();
+        $courseid = $data['courseid'];
+        $groupid = $data['groupid'];
+        // Get all the followup instances associated with this course
+        $persistents = followup_email_persistent::get_records(['courseid' => $courseid, 'groupid' => $groupid]);
+
+    }
+
 }
 
 
