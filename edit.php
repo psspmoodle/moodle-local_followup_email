@@ -55,7 +55,6 @@ if ($followup_form->is_cancelled()) {
 
         try {
             if (empty($data->id)) {
-                unset($data->deleteunenrolled);
                 // If we don't have an ID, we know that we must create a new record.
                 unset($data->deleteunenrolled);
                 $persistent = new followup_email_persistent(0, $data);
