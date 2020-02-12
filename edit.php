@@ -56,6 +56,7 @@ if ($followup_form->is_cancelled()) {
         try {
             if (empty($data->id)) {
                 // If we don't have an ID, we know that we must create a new record.
+                unset($data->deleteunenrolled);
                 $persistent = new followup_email_persistent(0, $data);
                 $persistent->create();
                 followup_email_status_persistent::add_tracked_users($persistent);

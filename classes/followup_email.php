@@ -4,7 +4,6 @@ namespace local_followup_email;
 
 use context_course;
 use core\notification;
-use local_cohort_welcome\event\welcome_email_sent;
 use local_followup_email\output\followup_email_status;
 use moodle_url;
 
@@ -36,16 +35,23 @@ class followup_email {
         return true;
     }
 
-    public static function groups_member_added($event)
+    public static function group_member_added($event)
     {
         $data = $event->get_data();
         $courseid = $data['courseid'];
-        $groupid = $data['groupid'];
-        // Get all the followup instances associated with this course
+        $groupid = $data['objectid'];
+        $groups = groups_get_all_groups($data['courseid']);
+        // Get all the followup instances associated with this course AND this group
         $persistents = followup_email_persistent::get_records(['courseid' => $courseid, 'groupid' => $groupid]);
+        if ($persistents) {
+            foreach ($persistents as $persistent) {
+                if (in_array($persistent->get('groupid'), array_keys($groups))) {
+                    followup_email_status_persistent::add_tracked_users($persistent);
+                }
+            }
 
+        }
     }
-
 }
 
 

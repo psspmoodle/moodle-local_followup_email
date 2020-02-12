@@ -35,7 +35,7 @@ class followup_email_index implements renderable, templatable
             $row = array(
                 'title' => $record->get('email_subject'),
                 'coursemodule' => ($this->cminfo->get_cm($record->get('cmid')))->name,
-                'group' => $record->get('groupid'),
+                'group' => groups_get_group_name($record->get('groupid')),
                 'statusurl' => (new moodle_url('/local/followup_email/status.php', $params))->out(false),
                 'editurl' => (new moodle_url('/local/followup_email/edit.php', $params))->out(false),
                 'deleteurl' => (new moodle_url('/local/followup_email/index.php', $params))->out(false)
