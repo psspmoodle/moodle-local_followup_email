@@ -52,6 +52,20 @@ class followup_email {
 
         }
     }
+
+    public static function group_member_removed($event)
+    {
+        $data = $event->get_data();
+        $courseid = $data['courseid'];
+        $groupid = $data['objectid'];
+        // Get all the followup instances associated with this course AND this group
+        $persistents = followup_email_persistent::get_records(['courseid' => $courseid, 'groupid' => $groupid]);
+        foreach ($persistents as $persistent) {
+            if (in_array($persistent->get('groupid'), array_keys($groups))) {
+                followup_email_status_persistent::delete_tracked_users($persistent);
+            }
+        }
+    }
 }
 
 

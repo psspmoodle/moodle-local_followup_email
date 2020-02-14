@@ -66,12 +66,12 @@ class followup_email_status_persistent extends persistent
         return true;
     }
 
-//    public static function add_tracked_user($userid)
-
-    public static function delete_tracked_users(followup_email_persistent $persistent)
+    public static function ($todelete)
     {
-        $users = static::get_tracked_users($persistent);
-        foreach ($users as $user) {
+        if (!is_array($todelete)) {
+            $todelete = static::get_tracked_users($todelete);
+        }
+        foreach ($todelete as $user) {
             $user->delete();
         }
         return true;
