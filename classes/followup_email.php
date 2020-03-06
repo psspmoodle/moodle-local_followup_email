@@ -42,9 +42,9 @@ class followup_email {
         $groupid = $data['objectid'];
         $groups = groups_get_all_groups($data['courseid']);
         // Get all the followup instances associated with this course AND this group
-        $persistents = followup_email_persistent::get_records(['courseid' => $courseid, 'groupid' => $groupid]);
-        if ($persistents) {
-            foreach ($persistents as $persistent) {
+        $records = followup_email_persistent::get_records(['courseid' => $courseid, 'groupid' => $groupid]);
+        if ($records) {
+            foreach ($records as $persistent) {
                 if (in_array($persistent->get('groupid'), array_keys($groups))) {
                     followup_email_status_persistent::add_tracked_users($persistent);
                 }

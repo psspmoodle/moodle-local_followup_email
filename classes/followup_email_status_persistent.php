@@ -46,9 +46,10 @@ class followup_email_status_persistent extends persistent
      * @return bool
      * @throws \dml_exception
      */
-    public static function add_tracked_users(followup_email_persistent $persistent)
+    public static function add_users(followup_email_persistent $persistent)
     {
-        global $DB;
+        // Deal with most specific case first:
+        // Is the user already in
         $context = context_course::instance($persistent->get('courseid'));
         // We need to limit the users by group if there is one supplied
         $users = get_enrolled_users($context, null, $groupid = $persistent->get('groupid'));
@@ -66,16 +67,16 @@ class followup_email_status_persistent extends persistent
         return true;
     }
 
-    public static function ($todelete)
-    {
-        if (!is_array($todelete)) {
-            $todelete = static::get_tracked_users($todelete);
-        }
-        foreach ($todelete as $user) {
-            $user->delete();
-        }
-        return true;
-    }
+//    public static function ($todelete)
+//    {
+//        if (!is_array($todelete)) {
+//            $todelete = static::get_tracked_users($todelete);
+//        }
+//        foreach ($todelete as $user) {
+//            $user->delete();
+//        }
+//        return true;
+//    }
 
     /**
      * Gets all users in a course or group who are tracked by the followup email task.
@@ -116,6 +117,17 @@ class followup_email_status_persistent extends persistent
             $userids[] = $user->get('userid');
         }
         return $userids;
+    }
+
+
+    /**
+     * Get all Folloup Emails associated with a user in a course
+     * @param $userid
+     * @return array of persistents
+     */
+    public static function get_user($userid)
+    {
+
     }
 
 }
