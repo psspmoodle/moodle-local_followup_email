@@ -59,7 +59,6 @@ if ($followup_form->is_cancelled()) {
                 unset($data->deleteunenrolled);
                 $persistent = new followup_email_persistent(0, $data);
                 $persistent->create();
-                followup_email_status_persistent::add_tracked_users($persistent);
             } else {    // We have an ID: update the record.
                 // Purge unenrolled users
                 $deleteunenrolled = $data->deleteunenrolled;
