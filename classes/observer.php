@@ -7,7 +7,7 @@ use core\notification;
 use local_followup_email\output\followup_email_status;
 use moodle_url;
 
-class followup_email {
+class observer {
 
     public static function user_enrolment_created($event)
     {
@@ -20,13 +20,6 @@ class followup_email {
             followup_email_status_persistent::add_user($data['relateduserid'], $persistent);
         }
 
-//        $event = welcome_email_sent::create(array(
-//            'context' => context_course::instance($courseid),
-//            'relateduserid' => $data['relateduserid']
-//        ));
-//
-//        $event->trigger();
-
         $followupurl = (new moodle_url('/local/followup_email/index.php', array('courseid' => $data['courseid'])))->out(false);
         $notification = "The newly enrolled user may have been added to one or more Followup Emails in this course. 
         Check the <a href=\"{$followupurl}\" target=\"_blank\">Followup Email admin page</a> for details.";
@@ -37,27 +30,23 @@ class followup_email {
 
     public static function user_enrolment_deleted($event)
     {
+        global $DB;
         $data = $event->get_data();
         $courseid = $data['courseid'];
+        $userid = $data['relateduserid'];
         // Get all the followup instances associated with this course
         $persistents = followup_email_persistent::get_records(['courseid' => $courseid]);
-        // Remove the new user to all of them.
         foreach ($persistents as $persistent) {
-            followup_email_status_persistent::delete_user($data['relateduserid'], $persistent);
+            // Is the user tracked in this followup email instance?
+            if ($persistent->is_user_tracked($userid)) {
+                followup_email_status_persistent::remove_user($userid, $persistent);
+                $userobj = $DB->get_record('user', ['id' => $userid], 'firstname, lastname');
+                $fullname = $userobj->firstname . ' ' . $userobj->lastname;
+                $a = ['name' => $fullname, 'followupemail' => $persistent->get('email_subject')];
+                $notification = get_string('userremoved', 'local_followup_email', $a);
+                notification::warning($notification);
+            }
         }
-
-//        $event = welcome_email_sent::create(array(
-//            'context' => context_course::instance($courseid),
-//            'relateduserid' => $data['relateduserid']
-//        ));
-//
-//        $event->trigger();
-
-        $followupurl = (new moodle_url('/local/followup_email/index.php', array('courseid' => $data['courseid'])))->out(false);
-        $notification = "The newly enrolled user may have been added to one or more Followup Emails in this course. 
-        Check the <a href=\"{$followupurl}\" target=\"_blank\">Followup Email admin page</a> for details.";
-        notification::warning($notification);
-
         return true;
     }
 
@@ -91,6 +80,11 @@ class followup_email {
                 followup_email_status_persistent::delete_tracked_users($persistent);
             }
         }
+    }
+
+    public static function group_deleted($event)
+    {
+
     }
 }
 

@@ -21,23 +21,23 @@ class followup_email_form extends persistent {
     {
         $mform = $this->_form;
         $courseid = $this->_customdata['courseid'];
-        // User ID.
+        // User ID
         $mform->addElement('hidden', 'userid');
         $mform->setConstant('userid', $this->_customdata['userid']);
-        // Course ID.
+        // Course ID
         $mform->addElement('hidden', 'courseid');
         $mform->setConstant('courseid', $this->_customdata['courseid']);
 
         //List of course modules
         $mform->addElement('select', 'cmid', 'Activity', $this->get_activities($courseid));
 
-        // When it should be sent.
+        // When it should be sent
         $mform->addElement('duration', 'followup_interval', 'When do you want to send the followup email?');
 
-        // Location.
+        // Email subject
         $mform->addElement('text', 'email_subject', 'Email subject', $attributes = array('size' => '50'));
 
-        // Message.
+        // Message
         $mform->addElement('editor', 'email_body', 'Email body');
 
         // Groups
@@ -56,7 +56,7 @@ class followup_email_form extends persistent {
         foreach ($courseinfo->get_cms() as $cm) {
             $cms[$cm->id] = $cm->name;
         }
-        $selectoption = array(0 => get_string('selectoption', 'local_followup_email'));
+        $selectoption = array(get_string('selectoption', 'local_followup_email'));
         $cms = $selectoption + $cms;
         return $cms;
     }
@@ -68,7 +68,7 @@ class followup_email_form extends persistent {
             $groups[$group->id] = $group->name;
         }
         if ($groups) {
-            $selectoption = array(0 => get_string('selectoption', 'local_followup_email'));
+            $selectoption = array(get_string('selectoption', 'local_followup_email'));
             $groups = $selectoption + $groups;
         }
         return $groups;

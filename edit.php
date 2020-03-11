@@ -68,7 +68,7 @@ if ($followup_form->is_cancelled()) {
                 if ($deleteunenrolled) {
                     followup_email_status_persistent::delete_tracked_users($persistent);
                 }
-                followup_email_status_persistent::add_tracked_users($persistent);
+//                followup_email_status_persistent::add_tracked_users($persistent);
             }
             notification::success(get_string('changessaved'));
         } catch (Exception $e) {

@@ -16,15 +16,19 @@ $observers = array(
 
     array(
         'eventname'   => '\core\event\user_enrolment_created',
-        'callback'    => '\local_followup_email\followup_email::user_enrolment_created'
+        'callback'    => 'local_followup_email\observer::user_enrolment_created'
+    ),
+    array(
+        'eventname'   => '\core\event\user_enrolment_deleted',
+        'callback'    => 'local_followup_email\observer::user_enrolment_deleted'
     ),
     array(
         'eventname'   => '\core\event\group_member_added',
-        'callback'    => '\local_followup_email\followup_email::group_member_added'
+        'callback'    => 'local_followup_email\observer::group_member_added'
     ),
     array(
         'eventname'   => '\core\event\group_member_removed',
-        'callback'    => '\local_followup_email\followup_email::group_member_removed'
+        'callback'    => 'local_followup_email\observer::group_member_removed'
     ),
 
 );

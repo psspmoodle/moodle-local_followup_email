@@ -40,8 +40,8 @@ class followup_email_status_persistent extends persistent
     }
 
     public static function add_user($userid, $persistent) {
-        $user = ['id' => $userid];
-        static::add_users([$user], $persistent);
+        $user = [['id' => $userid]];
+        static::add_users($user, $persistent);
     }
 
     /**
@@ -49,15 +49,17 @@ class followup_email_status_persistent extends persistent
      * or just users in a group.
      *
      * @param $userids array Array of userids
-     * @param followup_email_persistent
+     * @param $persistent followup_email_persistent
      * @return bool
      * @throws \dml_exception
+     * @throws \coding_exception
+     * @throws \core\invalid_persistent_exception
      */
     public static function add_users(array $userids, followup_email_persistent $persistent)
     {
         // Is the user is already tracked by this followup email instance?
         foreach ($userids as $user) {
-            if (!static::is_user_tracked($user['id'], $persistent)) {
+            if (!$persistent->is_user_tracked($user['id'])) {
                 $status = new static();
                 $status->set('userid', $user['id']);
                 $status->set('followup_email_id', $persistent->get('id'));
@@ -82,86 +84,30 @@ class followup_email_status_persistent extends persistent
         $users = get_enrolled_users($context, null, $groupid = $persistent->get('groupid'), 'u.id');
         $usersarray = [];
         foreach($users as $user) {
-            $usersarray[] = ['id' => $user->id];
+            $usersarray[] = (array) $user;
         }
         return static::add_users($usersarray, $persistent);
     }
 
     /**
-     * Gets all users in a course or group who are tracked by the given followup email.
+     * Remove a user from a follow up email instance.
      *
-     *
-     * @param $persistent followup_email_persistent
-     * @return array of followupids
+     * @param int $userid User ID of tracked user to remove
+     * @param persistent
+     * @return bool
+     * @throws \dml_exception
      */
-    public static function get_tracked_users(followup_email_persistent $persistent)
+    public static function remove_user(int $userid, persistent $persistent)
     {
-        global $DB;
-        $statusrecords = [];
-        $followupid = $persistent->get('id');
-        $sql = "SELECT fes.*
-                FROM {" . static::TABLE . "} fes
-                JOIN {followup_email} fe
-                ON fe.id = fes.followup_email_id
-                WHERE fe.id = {$followupid}";
-        // If the groupid != 0, students could be in more than one group in the course,
-        // so we need further specificity.
-        if ($groupid = $persistent->get('groupid')) {
-            $sql .= " AND fe.groupid = {$groupid}";
-        }
-        $records = $DB->get_records_sql($sql);
-        foreach ($records as $record) {
-            $statusrecords[] = new static(0, $record);
-        }
-        return $statusrecords;
-    }
-
-    public static function is_user_tracked($userid, followup_email_persistent $persistent)
-    {
-        if ($trackedusers = static::get_tracked_users($persistent)) {
-            foreach($trackedusers as $trackeduser) {
-                if ($trackeduser->get('userid') == $userid) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-
-
-
-    /**
-     * Get all Folloup Emails associated with a user in a course
-     * @param $userid
-     * @return array of persistents
-     */
-    public static function get_user($userid)
-    {
-
-    }
-
-    public static function delete_user($userid, $persistent) {
-
         $status = new followup_email_status_persistent();
-        if ($records = $status::get_records(array('followup_email_id' => $this->get('id')))) {
+        $filter = ['followup_email_id' => $persistent->get('id'), 'userid' => $userid];
+        if ($records = $status::get_records($filter)) {
             foreach ($records as $record) {
                 $record->delete();
             }
             return true;
         }
-        //    public static function ($todelete)
-//    {
-//        if (!is_array($todelete)) {
-//            $todelete = static::get_tracked_users($todelete);
-//        }
-//        foreach ($todelete as $user) {
-//            $user->delete();
-//        }
-//        return true;
-//    }
+        return false;
     }
-
-
 
 }

@@ -24,8 +24,8 @@ require_login($course);
 $context = context_course::instance($course->id);
 
 $persistent = new followup_email_persistent($followupid);
-$status = followup_email_status_persistent::get_tracked_users($persistent);
-$statuspage = new followup_email_status($persistent, $status);
+$records = $persistent->get_tracked_users();
+$statuspage = new followup_email_status($persistent, $records);
 
 $title = get_string('pluginname', 'local_followup_email');
 $PAGE->set_pagelayout('incourse');

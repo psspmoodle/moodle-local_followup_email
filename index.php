@@ -17,7 +17,7 @@ $courseid = required_param('courseid', PARAM_INT);
 $deleteid = optional_param('followupid',  null,PARAM_INT);
 $PAGE->set_url('/local/followup_email/index.php', array('courseid'=>$courseid));
 
-$course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
+$course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
 require_login($course);
 $context = context_course::instance($course->id);
 
@@ -26,7 +26,7 @@ if ($deleteid) {
     $todelete = $persistent::get_record(array('id' => $deleteid));
     $todelete->delete();
 }
-$records = $persistent::get_records();
+$records = $persistent::get_records(['courseid' => $courseid]);
 $index = new followup_email_index($courseid, $records, $deleteid);
 
 $title = get_string('pluginname', 'local_followup_email');

@@ -64,4 +64,33 @@ class followup_email_persistent extends persistent
         return followup_email_status_persistent::add_enrolled_users($this);
     }
 
+    public function get_tracked_users()
+    {
+        global $DB;
+        $statusrecords = [];
+        $followupid = $this->get('id');
+        $sql = "SELECT fes.*
+                FROM {followup_email_status} fes
+                JOIN {followup_email} fe
+                ON fe.id = fes.followup_email_id
+                WHERE fe.id = {$followupid}";
+        $records = $DB->get_records_sql($sql);
+        foreach ($records as $record) {
+            $statusrecords[] = new followup_email_status_persistent(0, $record);
+        }
+        return $statusrecords;
+    }
+
+    public function is_user_tracked($userid)
+    {
+        if ($trackedusers = $this->get_tracked_users()) {
+            foreach($trackedusers as $user) {
+                if ($user->get('userid') == $userid) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
 }
