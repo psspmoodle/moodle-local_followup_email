@@ -90,17 +90,19 @@ class followup_email_status_persistent extends persistent
     }
 
     /**
-     * Remove a user from a follow up email instance.
+     * Remove user(s) from a follow up email instance.
      *
-     * @param int $userid User ID of tracked user to remove
      * @param persistent
      * @return bool
      * @throws \dml_exception
      */
-    public static function remove_user(int $userid, persistent $persistent)
+    public static function remove_users(persistent $persistent, $userid = null)
     {
         $status = new followup_email_status_persistent();
-        $filter = ['followup_email_id' => $persistent->get('id'), 'userid' => $userid];
+        $filter = ['followup_email_id' => $persistent->get('id')];
+        if ($userid) {
+            $filter['userid'] = $userid;
+        }
         if ($records = $status::get_records($filter)) {
             foreach ($records as $record) {
                 $record->delete();

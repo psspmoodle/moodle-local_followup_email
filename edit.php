@@ -56,19 +56,13 @@ if ($followup_form->is_cancelled()) {
         try {
             if (empty($data->id)) {     // No ID: create a new record.
                 // There's no DB field for this form field, so it will throw an error
-                unset($data->deleteunenrolled);
                 $persistent = new followup_email_persistent(0, $data);
                 $persistent->create();
             } else {    // We have an ID: update the record.
-                // Purge unenrolled users
-                $deleteunenrolled = $data->deleteunenrolled;
-                unset($data->deleteunenrolled);
                 $persistent->from_record($data);
                 $persistent->update();
-                if ($deleteunenrolled) {
-                    followup_email_status_persistent::delete_tracked_users($persistent);
-                }
-//                followup_email_status_persistent::add_tracked_users($persistent);
+                followup_email_status_persistent::remove_users($persistent);
+                followup_email_status_persistent::add_enrolled_users($persistent);
             }
             notification::success(get_string('changessaved'));
         } catch (Exception $e) {

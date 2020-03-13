@@ -11,9 +11,6 @@ class followup_email_form extends persistent {
     /** @var string Persistent class name. */
     protected static $persistentclass = 'local_followup_email\\followup_email_persistent';
 
-    /** @var array Fields to remove from the persistent validation. */
-    protected static $foreignfields = array('deleteunenrolled');
-
     /**
      * Define the form.
      */
@@ -28,29 +25,32 @@ class followup_email_form extends persistent {
         $mform->addElement('hidden', 'courseid');
         $mform->setConstant('courseid', $this->_customdata['courseid']);
 
-        //List of course modules
-        $mform->addElement('select', 'cmid', 'Activity', $this->get_activities($courseid));
+        // Event that will trigger email
+        $mform->addElement('select', 'event', 'Associated event:', $this->get_events());
 
+        //List of course modules
+        $mform->addElement('select', 'cmid', 'Activity:', $this->get_activities($courseid));
+        $mform->hideIf('cmid', 'event', 'eq', 1);
+        $mform->hideIf('cmid', 'event', 'eq', 2);
+        $mform->setDefault('cmid', 0);
         // When it should be sent
         $mform->addElement('duration', 'followup_interval', 'When do you want to send the followup email?');
 
         // Email subject
-        $mform->addElement('text', 'email_subject', 'Email subject', $attributes = array('size' => '50'));
+        $mform->addElement('text', 'email_subject', 'Email subject:', $attributes = array('size' => '50'));
 
         // Message
-        $mform->addElement('editor', 'email_body', 'Email body');
+        $mform->addElement('editor', 'email_body', 'Email body:');
 
         // Groups
         if ($groups = $this->get_groups($courseid)) {
-            $mform->addElement('select', 'groupid', 'Group', $groups);
+            $mform->addElement('select', 'groupid', 'Group:', $this->get_groups($courseid));
         };
-        $str = get_string('deleteunenrolled', 'local_followup_email');
-        $mform->addElement('advcheckbox', 'deleteunenrolled', $str, null, null, array(0,1));
 
         $this->add_action_buttons();
     }
 
-    function get_activities($courseid) {
+    private function get_activities($courseid) {
         $courseinfo = get_fast_modinfo($courseid);
         $cms = array();
         foreach ($courseinfo->get_cms() as $cm) {
@@ -61,7 +61,7 @@ class followup_email_form extends persistent {
         return $cms;
     }
 
-    function get_groups($courseid) {
+    private function get_groups($courseid) {
         $groupobjects = groups_get_all_groups($courseid);
         $groups = array();
         foreach ($groupobjects as $group) {
@@ -74,7 +74,11 @@ class followup_email_form extends persistent {
         return $groups;
     }
 
-
-
-
+    private function get_events() {
+        return [
+            FOLLOWUP_EMAIL_ACTIVITY_COMPLETION => 'Activity completion',
+            FOLLOWUP_EMAIL_SINCE_ENROLLMENT => 'Enrollment',
+            FOLLOWUP_EMAIL_SINCE_LAST_LOGIN => 'Since last course login'
+        ];
+    }
 }

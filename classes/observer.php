@@ -74,18 +74,23 @@ class observer {
         $data = $event->get_data();
         $courseid = $data['courseid'];
         $groupid = $data['objectid'];
+        $userid = $data['relateduserid'];
         // Get all the followup instances associated with this course AND this group
         $persistents = followup_email_persistent::get_records(['courseid' => $courseid, 'groupid' => $groupid]);
         foreach ($persistents as $persistent) {
-            if (in_array($persistent->get('groupid'), array_keys($groups))) {
-                followup_email_status_persistent::remove_user($persistent);
-            }
+            followup_email_status_persistent::remove_users($persistent, $userid);
         }
     }
 
     public static function group_deleted($event)
     {
-
+        $data = $event->get_data();
+        $courseid = $data['courseid'];
+        $groupid = $data['objectid'];
+        $persistents = followup_email_persistent::get_records(['courseid' => $courseid, 'groupid' => $groupid]);
+        foreach ($persistents as $persistent) {
+            followup_email_status_persistent::remove_users($persistent);
+        }
     }
 }
 

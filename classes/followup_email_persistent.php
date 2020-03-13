@@ -6,8 +6,14 @@ namespace local_followup_email;
 use completion_info;
 use core\persistent;
 
+define('FOLLOWUP_EMAIL_ACTIVITY_COMPLETION', 0);
+define('FOLLOWUP_EMAIL_SINCE_ENROLLMENT', 1);
+define('FOLLOWUP_EMAIL_SINCE_LAST_LOGIN', 2);
+
 class followup_email_persistent extends persistent
 {
+
+
 
     /** Table name for the persistent. */
     const TABLE = 'followup_email';
@@ -24,6 +30,11 @@ class followup_email_persistent extends persistent
             ),
             'cmid' => array(
                 'type' => PARAM_INT,
+                'default' => 0
+            ),
+            'event' => array(
+                'type' => PARAM_INT,
+                'default' => 0
             ),
             'email_subject' => array(
                 'type' => PARAM_TEXT,
