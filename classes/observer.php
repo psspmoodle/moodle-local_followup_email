@@ -39,7 +39,7 @@ class observer {
         foreach ($persistents as $persistent) {
             // Is the user tracked in this followup email instance?
             if ($persistent->is_user_tracked($userid)) {
-                followup_email_status_persistent::remove_user($userid, $persistent);
+                followup_email_status_persistent::remove_users($persistent, $userid);
                 $userobj = $DB->get_record('user', ['id' => $userid], 'firstname, lastname');
                 $fullname = $userobj->firstname . ' ' . $userobj->lastname;
                 $a = ['name' => $fullname, 'followupemail' => $persistent->get('email_subject')];

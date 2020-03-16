@@ -59,10 +59,14 @@ if ($followup_form->is_cancelled()) {
                 $persistent = new followup_email_persistent(0, $data);
                 $persistent->create();
             } else {    // We have an ID: update the record.
+                // We only want to flush tracked users if the related event or group have been changed
+                $flush = $data->event != $persistent->get('event') || $data->groupid != $persistent->get('groupid');
                 $persistent->from_record($data);
                 $persistent->update();
-                followup_email_status_persistent::remove_users($persistent);
-                followup_email_status_persistent::add_enrolled_users($persistent);
+                if ($flush) {
+                    followup_email_status_persistent::remove_users($persistent);
+                    followup_email_status_persistent::add_enrolled_users($persistent);
+                }
             }
             notification::success(get_string('changessaved'));
         } catch (Exception $e) {

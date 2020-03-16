@@ -27,7 +27,7 @@ $persistent = new followup_email_persistent($followupid);
 $records = $persistent->get_tracked_users();
 $statuspage = new followup_email_status($persistent, $records);
 
-$title = get_string('pluginname', 'local_followup_email');
+$title = $persistent->get('email_subject');
 $PAGE->set_pagelayout('incourse');
 $PAGE->set_title($title);
 $PAGE->set_heading($course->fullname);

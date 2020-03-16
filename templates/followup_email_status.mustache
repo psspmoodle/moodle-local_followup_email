@@ -2,11 +2,10 @@
     <table class="table">
         <thead>
         <tr>
-            <th class="font-weight-bold">User</th>
-            <th class="font-weight-bold">Activity completion</th>
-            <th class="font-weight-bold">Date email will be sent</th>
-            <th class="font-weight-bold">Email sent?</th>
-            <th class="font-weight-bold">Enrolled</th>
+            <th class="font-weight-bold">{{user}}</th>
+            <th class="font-weight-bold">{{event}}</th>
+            <th class="font-weight-bold">{{datetobesent}}</th>
+            <th class="font-weight-bold">{{emailsent}}</th>
         </tr>
         </thead>
         {{#rows}}
@@ -15,7 +14,6 @@
                 <td>{{completion_time}}</td>
                 <td>{{email_to_be_sent}}</td>
                 <td>{{email_time_sent}}</td>
-                <td>{{#is_enrolled}}Yes{{/is_enrolled}}{{^is_enrolled}}No{{/is_enrolled}}</td>
             </tr>
         {{/rows}}
     </table>

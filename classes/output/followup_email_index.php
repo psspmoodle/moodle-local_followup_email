@@ -32,9 +32,10 @@ class followup_email_index implements renderable, templatable
         $rows = array();
         foreach ($records as $record) {
             $params = array('courseid' => $this->cminfo->courseid, 'followupid' => $record->get('id'));
+            $event = followup_email_status::get_event_label($record->get('event'));
             $row = array(
                 'title' => $record->get('email_subject'),
-                'coursemodule' => ($this->cminfo->get_cm($record->get('cmid')))->name,
+                'event' => get_string($event, 'local_followup_email'),
                 'group' => groups_get_group_name($record->get('groupid')),
                 'statusurl' => (new moodle_url('/local/followup_email/status.php', $params))->out(false),
                 'editurl' => (new moodle_url('/local/followup_email/edit.php', $params))->out(false),
@@ -43,6 +44,15 @@ class followup_email_index implements renderable, templatable
             $rows[] = $row;
         }
         return $rows;
+    }
+
+    private function get_status_table_headings() {
+        return array(
+            'subjectline' => get_string('subjectline','local_followup_email'),
+            'relatedevent' => get_string('relatedevent','local_followup_email'),
+            'group' => get_string('group','local_followup_email'),
+            'modify' => get_string('modify','local_followup_email')
+        );
     }
 
     public function export_for_template(renderer_base $output)
@@ -58,6 +68,6 @@ class followup_email_index implements renderable, templatable
         $data->deleteid = $this->deleteid;
         $deleted = get_string('itemdeleted','local_followup_email');
         $data->issuccess = (new notification($deleted, 'success'))->export_for_template($output);
-        return $data;
+        return (object) array_merge((array) $data, $this->get_status_table_headings());
     }
 }

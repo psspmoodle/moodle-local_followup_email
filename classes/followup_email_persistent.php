@@ -5,6 +5,7 @@ namespace local_followup_email;
 
 use completion_info;
 use core\persistent;
+use lang_string;
 
 define('FOLLOWUP_EMAIL_ACTIVITY_COMPLETION', 0);
 define('FOLLOWUP_EMAIL_SINCE_ENROLLMENT', 1);
@@ -102,6 +103,18 @@ class followup_email_persistent extends persistent
             }
         }
         return false;
+    }
+
+    protected function validate_cmid($cmid) {
+        if ($this->get('event') != FOLLOWUP_EMAIL_ACTIVITY_COMPLETION) {
+            $this->set('cmid', 0);
+        } else {
+            if (!$cmid) {
+                return new lang_string('specifycoursemodule', 'local_followup_email');
+            }
+        }
+
+        return true;
     }
 
 }

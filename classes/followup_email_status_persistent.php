@@ -55,7 +55,7 @@ class followup_email_status_persistent extends persistent
      * @throws \coding_exception
      * @throws \core\invalid_persistent_exception
      */
-    public static function add_users(array $userids, followup_email_persistent $persistent)
+    public static function add_users(array $userids, persistent $persistent)
     {
         // Is the user is already tracked by this followup email instance?
         foreach ($userids as $user) {
@@ -72,11 +72,11 @@ class followup_email_status_persistent extends persistent
     /**
      * Add users enrolled in course––and possibly just members of a group——that should be sent a follow up email.
      *
-     * @param followup_email_persistent
+     * @param persistent
      * @return bool
      * @throws \dml_exception
      */
-    public static function add_enrolled_users(followup_email_persistent $persistent)
+    public static function add_enrolled_users(persistent $persistent)
     {
         //Context to pass to get_enrolled_users()
         $context = context_course::instance($persistent->get('courseid'));

@@ -6,16 +6,16 @@
     <table class="table">
         <thead>
         <tr>
-            <th class="font-weight-bold">Email subject line</th>
-            <th class="font-weight-bold">Related course module</th>
-            <th class="font-weight-bold">Group</th>
-            <th class="font-weight-bold">Modify</th>
+            <th class="font-weight-bold">{{subjectline}}</th>
+            <th class="font-weight-bold">{{relatedevent}}</th>
+            <th class="font-weight-bold">{{group}}</th>
+            <th class="font-weight-bold">{{modify}}</th>
         </tr>
         </thead>
         {{#rows}}
         <tr>
             <td>{{title}}</td>
-            <td>{{coursemodule}}</td>
+            <td>{{event}}</td>
             <td>{{#group}}{{group}}{{/group}}</td>
             <td class="text-center"><a href="{{statusurl}}">{{statustext}}</a> | <a href="{{editurl}}">{{edittext}}</a> | <a href="{{deleteurl}}">{{deletetext}}</a></td>
         </tr>
