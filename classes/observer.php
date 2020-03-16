@@ -2,12 +2,11 @@
 
 namespace local_followup_email;
 
-use context_course;
 use core\notification;
-use local_followup_email\output\followup_email_status;
 use moodle_url;
 
-class observer {
+class observer
+{
 
     public static function user_enrolment_created($event)
     {
@@ -92,6 +91,16 @@ class observer {
             followup_email_status_persistent::remove_users($persistent);
         }
     }
-}
 
+    public static function course_module_deleted($event)
+    {
+        $data = $event->get_data();
+        $cmid = $data['objectid'];
+        $persistents = followup_email_persistent::get_records(['cmid' => $cmid]);
+        foreach ($persistents as $persistent) {
+            $persistent->delete();
+        }
+    }
+
+}
 

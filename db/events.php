@@ -34,5 +34,9 @@ $observers = array(
         'eventname'   => '\core\event\group_deleted',
         'callback'    => 'local_followup_email\observer::group_deleted'
     ),
+    array(
+        'eventname'   => '\core\event\course_module_deleted',
+        'callback'    => 'local_followup_email\observer::course_module_deleted'
+    ),
 
 );

@@ -48,7 +48,7 @@ class send_followup_email extends scheduled_task
                 // Instantiate a persistent for the status table
                 $email_status = new followup_email_status_persistent();
                 // Get the record of the user for whom we want to update email_sent
-                $email_status->get_record_by_userid($user->id, $groupid);
+//                $email_status->get_record_by_userid($user->id, $groupid);
                 $email_status->set('email_sent', 1);
                 $contact = core_user::get_noreply_user();
                 $subject = $record->get('email_subject');
@@ -75,10 +75,10 @@ class send_followup_email extends scheduled_task
         $course = $DB->get_record('course', array('id' => $persistent->get('courseid')), '*', MUST_EXIST);
         // Get the course module id
         $cm = (get_fast_modinfo($course->id))->get_cm($persistent->get('cmid'));
-        // This will be 0 if a group wasn't selected
+        // $groupid will be 0 if a group wasn't selected
         $groupid = $persistent->get('groupid');
         $completioninfo = new completion_info($course);
-        $users = $completioninfo->get_tracked_users(null, null, $groupid ?? null);
+        $users = $completioninfo->get_tracked_users(null, null, $groupid || null);
         foreach ($users as $user) {
             // Get completion data for user for specified course module
             $cmdata = $completioninfo->get_data($cm, false, $user->id);

@@ -3,10 +3,10 @@
 
 namespace local_followup_email;
 
-use completion_info;
 use context_course;
 use core\persistent;
-use stdClass;
+use DateTime;
+use local_followup_email\output\followup_email_status;
 
 class followup_email_status_persistent extends persistent
 {
@@ -110,6 +110,49 @@ class followup_email_status_persistent extends persistent
             return true;
         }
         return false;
+    }
+
+    public static function get_event_time(followup_email_persistent $persistent, $userid, $prettify=false)
+    {
+        global $DB;
+        switch ($persistent->get('event')) {
+            case FOLLOWUP_EMAIL_ACTIVITY_COMPLETION:
+                $completioninfo = $this->completioninfo->get_data($this->cm, false, $userid);
+                if ($completioninfo->timemodified > 0) {
+                    if (!$prettify) {
+                        return $completioninfo->timemodified;
+                    } else {
+                        return self::prettify_timestamp($completioninfo->timemodified);
+                    }
+                }
+            case FOLLOWUP_EMAIL_SINCE_ENROLLMENT:
+                $sql =  "SELECT ue.timestart
+                        FROM {user_enrolments} ue
+                        JOIN {enrol} e
+                        ON ue.enrolid = e.id
+                        WHERE e.courseid = {$this->course->id}
+                        AND ue.userid = {$userid}";
+                $record = $DB->get_record_sql($sql, null, MUST_EXIST);
+                if (!$prettify) {
+                    return $record->timestart;
+                } else {
+                    return self::prettify_timestamp($record->timestart);
+                }
+            case FOLLOWUP_EMAIL_SINCE_LAST_LOGIN:
+                if ($lastaccess = $DB->get_record('user_lastaccess', array('userid' => $userid, 'courseid' => $this->course->id))) {
+                    if (!$prettify) {
+                        return $lastaccess->timeaccess;
+                    } else {
+                        return self::prettify_timestamp($lastaccess->timeaccess);
+                    }
+                }
+        }
+        return false;
+    }
+
+    public static function prettify_timestamp($timestamp) {
+        $datetime = new DateTime("@$timestamp");
+        return $datetime->format('M d, Y');
     }
 
 }

@@ -25,3 +25,5 @@ $string['relatedevent'] = 'Related event';
 $string['group'] = 'Group';
 $string['modify'] = 'Modify';
 $string['specifycoursemodule'] = 'Please specify a Course Module.';
+$string['neverloggedin'] = 'Never';
+

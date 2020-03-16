@@ -113,7 +113,6 @@ class followup_email_persistent extends persistent
                 return new lang_string('specifycoursemodule', 'local_followup_email');
             }
         }
-
         return true;
     }
 

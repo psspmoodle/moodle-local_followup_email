@@ -5,9 +5,9 @@ namespace local_followup_email\output;
 defined('MOODLE_INTERNAL') || die();
 
 use completion_info;
-use context_course;
 use DateTime;
 use local_followup_email\followup_email_persistent;
+use local_followup_email\followup_email_status_persistent;
 use moodle_url;
 use renderable;
 use renderer_base;
@@ -52,11 +52,12 @@ class followup_email_status implements renderable, templatable
         $rows = array();
         foreach ($records as $record) {
             $userid = $record->get('userid');
-            $eventtime = $this->get_event_time($userid, $this->followupemail->get('event'), true);
+            $event = $this->followupemail->get('event');
+            $eventtime = followup_email_status_persistent::get_event_time($this->followupemail, $userid, true);
             $row = array(
                 'fullname' => $this->get_fullname($userid),
                 'completion_time' => $eventtime ? $eventtime : '---',
-                'email_to_be_sent' => $this->get_time_to_be_sent($userid),
+                'email_to_be_sent' => $this->get_time_to_be_sent($userid, $event),
                 'email_time_sent' => $record->get('email_time_sent')
             );
             $rows[] = $row;
@@ -64,7 +65,8 @@ class followup_email_status implements renderable, templatable
         return $rows;
     }
 
-    private function get_status_table_headings() {
+    private function get_status_table_headings()
+    {
         $event = $this->followupemail->get('event');
         return array(
             'user' => get_string('user','local_followup_email'),
@@ -74,7 +76,8 @@ class followup_email_status implements renderable, templatable
         );
     }
 
-    public static function get_event_label($event) {
+    public static function get_event_label($event)
+    {
         switch ($event) {
             case FOLLOWUP_EMAIL_ACTIVITY_COMPLETION:
                 return 'event_activitycompletion';
@@ -88,14 +91,17 @@ class followup_email_status implements renderable, templatable
         }
     }
 
-    public function get_time_to_be_sent($userid)
+    public function get_time_to_be_sent($userid, $event)
     {
-//        $completiontime = $this->get_event_time($userid);
-//        if ($completiontime > 0) {;
-//            $timetosend = $completiontime + $this->followupemail->get('followup_interval');
-//            $datetime = new DateTime("@$timetosend");
-//            return $datetime->format('M d, Y');
-//        }
+        switch ($event) {
+            case FOLLOWUP_EMAIL_ACTIVITY_COMPLETION:
+                $completiontime = $this->get_event_time($userid, $event);
+                if ($completiontime > 0) {
+                    $timetosend = $completiontime + $this->followupemail->get('followup_interval');
+                    $datetime = new DateTime("@$timetosend");
+                    return $datetime->format('M d, Y');
+                }
+        }
         return null;
     }
 
@@ -106,37 +112,6 @@ class followup_email_status implements renderable, templatable
                 FROM {user} u
                 WHERE u.id = {$userid}";
         return ($DB->get_record_sql($sql))->fullname;
-    }
-
-    public function get_event_time($userid, $type, $formatted=false)
-    {
-        global $DB;
-        switch ($type) {
-            case FOLLOWUP_EMAIL_ACTIVITY_COMPLETION:
-                $completioninfo = $this->completioninfo->get_data($this->cm, false, $userid);
-                if ($completioninfo->timemodified > 0) {
-                    if (!$formatted) {
-                        return $completioninfo->timemodified;
-                    } else {
-                        $datetime = new DateTime("@$completioninfo->timemodified");
-                        return $datetime->format('M d, Y');
-                    }
-                }
-                break;
-            case FOLLOWUP_EMAIL_SINCE_ENROLLMENT:
-                $sql =  "SELECT ue.timestart
-                        FROM {user_enrolments} ue
-                        JOIN {enrol} e
-                        ON ue.enrolid = e.id
-                        WHERE e.courseid = {$this->course->id}
-                        AND ue.userid = {$userid}";
-                $record = $DB->get_record_sql($sql, null, MUST_EXIST);
-                $datetime = new DateTime("@$record->timestart");
-                return $datetime->format('M d, Y');
-            case FOLLOWUP_EMAIL_SINCE_LAST_LOGIN:
-
-        }
-        return false;
     }
 
     public function export_for_template(renderer_base $output)
