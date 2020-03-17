@@ -52,7 +52,6 @@ if ($followup_form->is_cancelled()) {
 } else {
     // Get the data. This ensures that the form was validated.
     if (($data = $followup_form->get_data())) {
-
         try {
             if (empty($data->id)) {     // No ID: create a new record.
                 // There's no DB field for this form field, so it will throw an error
@@ -60,7 +59,9 @@ if ($followup_form->is_cancelled()) {
                 $persistent->create();
             } else {    // We have an ID: update the record.
                 // We only want to flush tracked users if the related event or group have been changed
-                $flush = $data->event != $persistent->get('event') || $data->groupid != $persistent->get('groupid');
+                $flush = $data->event != $persistent->get('event')
+                    || (object_property_exists($data, 'groupid')
+                    && $data->groupid != $persistent->get('groupid'));
                 $persistent->from_record($data);
                 $persistent->update();
                 if ($flush) {

@@ -4,10 +4,13 @@ namespace local_followup_email\output;
 
 defined('MOODLE_INTERNAL') || die();
 
+use coding_exception;
 use completion_info;
 use DateTime;
+use dml_exception;
 use local_followup_email\followup_email_persistent;
 use local_followup_email\followup_email_status_persistent;
+use moodle_exception;
 use moodle_url;
 use renderable;
 use renderer_base;
@@ -18,33 +21,32 @@ class followup_email_status implements renderable, templatable
 {
     // The related followup_email persistent
     public $followupemail;
-    // Related course object
-    public $course;
-    // Related course module object
-    public $cm;
-    // Related completion info
-    public $completioninfo;
     // Array of table headings
     public $headings;
     // Array of status persistent records
     public $records;
 
-    public function __construct(followup_email_persistent $followupemail, $records)
+    /**
+     * followup_email_status constructor.
+     * @param followup_email_persistent $followupemail Related followup_email instance
+     * @param followup_email_status_persistent[] $records Records associated with followup_email instance
+     * @throws coding_exception
+     * @throws dml_exception
+     * @throws moodle_exception
+     */
+    public function __construct(followup_email_persistent $followupemail, array $records)
     {
-        global $DB;
         $this->followupemail = $followupemail;
-        $courseid = $this->followupemail->get('courseid');
-        $this->course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
-        $course_modinfo = get_fast_modinfo($this->followupemail->get('courseid'));
-        if ($followupemail->get('cmid')) {
-            $this->cm = $course_modinfo->get_cm($this->followupemail->get('cmid'));
-            $this->completioninfo = new completion_info($this->course);
-        }
         $this->records = $this->process_records($records);
         $this->headings = $this->get_status_table_headings();
     }
 
-    public function process_records($records)
+    /**
+     * @param followup_email_status_persistent[] $records Records associated with followup_email instance
+     * @return array|null
+     * @throws coding_exception
+     */
+    public function process_records(array $records)
     {
         if (!$records) {
             return null;
@@ -52,12 +54,11 @@ class followup_email_status implements renderable, templatable
         $rows = array();
         foreach ($records as $record) {
             $userid = $record->get('userid');
-            $event = $this->followupemail->get('event');
-            $eventtime = followup_email_status_persistent::get_event_time($this->followupemail, $userid, true);
+            $starttime = $record->get_start_time($this->followupemail,true);
             $row = array(
                 'fullname' => $this->get_fullname($userid),
-                'completion_time' => $eventtime ? $eventtime : '---',
-                'email_to_be_sent' => $this->get_time_to_be_sent($userid, $event),
+                'completion_time' => $starttime ? $starttime : '---',
+                'email_to_be_sent' => $this->get_time_to_be_sent($record, $this->followupemail->get('event')),
                 'email_time_sent' => $record->get('email_time_sent')
             );
             $rows[] = $row;
@@ -65,6 +66,10 @@ class followup_email_status implements renderable, templatable
         return $rows;
     }
 
+    /**
+     * @return array
+     * @throws coding_exception
+     */
     private function get_status_table_headings()
     {
         $event = $this->followupemail->get('event');
@@ -76,6 +81,10 @@ class followup_email_status implements renderable, templatable
         );
     }
 
+    /**
+     * @param $event
+     * @return string
+     */
     public static function get_event_label($event)
     {
         switch ($event) {
@@ -89,20 +98,28 @@ class followup_email_status implements renderable, templatable
                 return 'event_sincelastlogin';
                 break;
         }
+        return '';
     }
 
-    public function get_time_to_be_sent($userid, $event)
+    /**
+     * @param followup_email_status_persistent $record
+     * @param int $event
+     * @return string|null
+     * @throws coding_exception
+     * @throws dml_exception
+     */
+    public function get_time_to_be_sent(followup_email_status_persistent $record, int $event)
     {
-        switch ($event) {
-            case FOLLOWUP_EMAIL_ACTIVITY_COMPLETION:
-                $completiontime = $this->get_event_time($userid, $event);
-                if ($completiontime > 0) {
-                    $timetosend = $completiontime + $this->followupemail->get('followup_interval');
-                    $datetime = new DateTime("@$timetosend");
-                    return $datetime->format('M d, Y');
-                }
-        }
-        return null;
+//        switch ($event) {
+//            case FOLLOWUP_EMAIL_ACTIVITY_COMPLETION:
+//                $completiontime = $record->get_start_time($this->followupemail, );
+//                if ($completiontime > 0) {
+//                    $timetosend = $completiontime + $this->followupemail->get('followup_interval');
+//                    $datetime = new DateTime("@$timetosend");
+//                    return $datetime->format('M d, Y');
+//                }
+//        }
+//        return null;
     }
 
     public function get_fullname($userid)
@@ -117,9 +134,10 @@ class followup_email_status implements renderable, templatable
     public function export_for_template(renderer_base $output)
     {
         $data = [];
+        $courseid = $this->followupemail->get('courseid');
         $data['rows'] = $this->records;
         $data['returntext'] = get_string('returntoindex', 'local_followup_email');
-        $data['indexurl'] = new moodle_url('/local/followup_email/index.php', array('courseid' => $this->course->id));
+        $data['indexurl'] = new moodle_url('/local/followup_email/index.php', array('courseid' => $courseid));
         return (object) array_merge($data, $this->get_status_table_headings());
     }
 }
