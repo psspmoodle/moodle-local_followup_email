@@ -36,10 +36,6 @@ class followup_email_status_persistent extends persistent
             'email_sent' => array(
                 'type' => PARAM_BOOL,
                 'default' => 0
-            ),
-            'email_time_sent' => array(
-                'type' => PARAM_INT,
-                'default' => 0
             )
         );
     }
