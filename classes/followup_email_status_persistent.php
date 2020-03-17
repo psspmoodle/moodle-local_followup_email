@@ -3,7 +3,6 @@
 
 namespace local_followup_email;
 
-use cm_info;
 use coding_exception;
 use completion_info;
 use context_course;
@@ -164,9 +163,30 @@ class followup_email_status_persistent extends persistent
                 break;
         }
         if ($starttime > 0) {
-            return $prettify ? $this->prettify_timestamp($starttime) : $starttime;
+            return $this->prettify_timestamp($starttime);
+        } else {
+            return $starttime;
         }
-        return 0;
+    }
+
+    /**
+     * @param followup_email_persistent $persistent
+     * @param bool $prettify
+     * @return bool|string
+     * @throws coding_exception
+     * @throws dml_exception
+     */
+    public function get_send_time(followup_email_persistent $persistent, $prettify = false)
+    {
+        $starttime = $this->get_start_time($persistent);
+        $sendtime = 0;
+        if ($starttime > 0) {
+            $sendtime = $starttime + $persistent->get('followup_interval');
+            if ($prettify) {
+                return $this->prettify_timestamp($sendtime);
+            }
+        }
+        return $sendtime;
     }
 
     /**

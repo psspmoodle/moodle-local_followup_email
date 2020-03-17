@@ -4,16 +4,16 @@
         <tr>
             <th class="font-weight-bold">{{user}}</th>
             <th class="font-weight-bold">{{event}}</th>
-            <th class="font-weight-bold">{{datetobesent}}</th>
-            <th class="font-weight-bold">{{emailsent}}</th>
+            <th class="font-weight-bold">{{sendtime_heading}}</th>
+            <th class="font-weight-bold">{{emailsent_heading}}</th>
         </tr>
         </thead>
         {{#rows}}
             <tr>
                 <td>{{fullname}}</td>
                 <td>{{completion_time}}</td>
-                <td>{{email_to_be_sent}}</td>
-                <td>{{email_time_sent}}</td>
+                <td>{{sendtime}}</td>
+                <td>{{emailsent}}</td>
             </tr>
         {{/rows}}
     </table>

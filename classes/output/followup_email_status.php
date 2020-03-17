@@ -46,7 +46,7 @@ class followup_email_status implements renderable, templatable
      * @return array|null
      * @throws coding_exception
      */
-    public function process_records(array $records)
+    private function process_records(array $records)
     {
         if (!$records) {
             return null;
@@ -55,11 +55,13 @@ class followup_email_status implements renderable, templatable
         foreach ($records as $record) {
             $userid = $record->get('userid');
             $starttime = $record->get_start_time($this->followupemail,true);
+            $sendtime = $record->get_send_time($this->followupemail, true);
+            $emailsent = $record->get('email_sent') ? "Yes" : "No";
             $row = array(
                 'fullname' => $this->get_fullname($userid),
-                'completion_time' => $starttime ? $starttime : '---',
-                'email_to_be_sent' => $this->get_time_to_be_sent($record, $this->followupemail->get('event')),
-                'email_time_sent' => $record->get('email_time_sent')
+                'starttime' => $starttime ? $starttime : '---',
+                'sendtime' => $sendtime ? $sendtime : '---',
+                'emailsent' => $emailsent
             );
             $rows[] = $row;
         }
@@ -76,8 +78,8 @@ class followup_email_status implements renderable, templatable
         return array(
             'user' => get_string('user','local_followup_email'),
             'event' => get_string($this->get_event_label($event),'local_followup_email'),
-            'datetobesent' => get_string('datetobesent','local_followup_email'),
-            'emailsent' => get_string('emailsent','local_followup_email')
+            'sendtime_heading' => get_string('datetobesent','local_followup_email'),
+            'emailsent_heading' => get_string('emailsent','local_followup_email')
         );
     }
 
@@ -99,27 +101,6 @@ class followup_email_status implements renderable, templatable
                 break;
         }
         return '';
-    }
-
-    /**
-     * @param followup_email_status_persistent $record
-     * @param int $event
-     * @return string|null
-     * @throws coding_exception
-     * @throws dml_exception
-     */
-    public function get_time_to_be_sent(followup_email_status_persistent $record, int $event)
-    {
-//        switch ($event) {
-//            case FOLLOWUP_EMAIL_ACTIVITY_COMPLETION:
-//                $completiontime = $record->get_start_time($this->followupemail, );
-//                if ($completiontime > 0) {
-//                    $timetosend = $completiontime + $this->followupemail->get('followup_interval');
-//                    $datetime = new DateTime("@$timetosend");
-//                    return $datetime->format('M d, Y');
-//                }
-//        }
-//        return null;
     }
 
     public function get_fullname($userid)

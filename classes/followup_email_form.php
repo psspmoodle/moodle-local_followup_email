@@ -52,18 +52,18 @@ class followup_email_form extends persistent {
 
     private function get_activities($courseid) {
         $courseinfo = get_fast_modinfo($courseid);
-        $cms = array();
+        $cms = [];
         foreach ($courseinfo->get_cms() as $cm) {
             $cms[$cm->id] = $cm->name;
         }
-        $selectoption = array(get_string('selectoption', 'local_followup_email'));
+        $selectoption = [get_string('selectoption', 'local_followup_email')];
         $cms = $selectoption + $cms;
         return $cms;
     }
 
     private function get_groups($courseid) {
         $groupobjects = groups_get_all_groups($courseid);
-        $groups = array();
+        $groups = [];
         foreach ($groupobjects as $group) {
             $groups[$group->id] = $group->name;
         }

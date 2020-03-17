@@ -51,7 +51,7 @@ if ($followup_form->is_cancelled()) {
     redirect(new moodle_url('/local/followup_email/index.php', array('courseid' => $courseid)));
 } else {
     // Get the data. This ensures that the form was validated.
-    if (($data = $followup_form->get_data())) {
+    if ($data = $followup_form->get_data()) {
         try {
             if (empty($data->id)) {     // No ID: create a new record.
                 // There's no DB field for this form field, so it will throw an error
