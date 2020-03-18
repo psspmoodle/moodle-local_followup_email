@@ -4,14 +4,10 @@
 namespace local_followup_email;
 
 use coding_exception;
-use completion_info;
 use context_course;
 use core\invalid_persistent_exception;
 use core\persistent;
-use DateTime;
 use dml_exception;
-use Exception;
-use stdClass;
 
 class followup_email_status_persistent extends persistent
 {
@@ -118,81 +114,6 @@ class followup_email_status_persistent extends persistent
             return true;
         }
         return false;
-    }
-
-    /**
-     * @param followup_email_persistent $persistent
-     * @param bool $prettify Return formatted date
-     * @return bool|string
-     * @throws coding_exception
-     * @throws dml_exception
-     */
-    public function get_start_time(followup_email_persistent $persistent, $prettify = false)
-    {
-        global $DB;
-        $userid = $this->get('userid');
-        $courseid = $persistent->get('courseid');
-        $cm = new stdClass();
-        $cm->id = $persistent->get('cmid');
-        $starttime = 0;
-        switch ($persistent->get('event')) {
-            case FOLLOWUP_EMAIL_ACTIVITY_COMPLETION:
-                $course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
-                $completioninfo = new completion_info($course);
-                $completiondata = $completioninfo->get_data($cm, false, $userid);
-                $starttime =  $completiondata->timemodified > 0 ? $completiondata->timemodified : 0;
-                break;
-            case FOLLOWUP_EMAIL_SINCE_ENROLLMENT:
-                $sql = "SELECT ue.timestart
-                        FROM {user_enrolments} ue
-                        JOIN {enrol} e
-                        ON ue.enrolid = e.id
-                        WHERE e.courseid = {$courseid}
-                        AND ue.userid = {$userid}";
-                $record = $DB->get_record_sql($sql, null, MUST_EXIST);
-                $starttime = $record->timestart;
-                break;
-            case FOLLOWUP_EMAIL_SINCE_LAST_LOGIN:
-                if ($lastaccess = $DB->get_record('user_lastaccess', array('userid' => $userid, 'courseid' => $courseid))) {
-                    $starttime = $lastaccess;
-                }
-                break;
-        }
-        if ($starttime > 0) {
-            return $this->prettify_timestamp($starttime);
-        } else {
-            return $starttime;
-        }
-    }
-
-    /**
-     * @param followup_email_persistent $persistent
-     * @param bool $prettify
-     * @return bool|string
-     * @throws coding_exception
-     * @throws dml_exception
-     */
-    public function get_send_time(followup_email_persistent $persistent, $prettify = false)
-    {
-        $starttime = $this->get_start_time($persistent);
-        $sendtime = 0;
-        if ($starttime > 0) {
-            $sendtime = $starttime + $persistent->get('followup_interval');
-            if ($prettify) {
-                return $this->prettify_timestamp($sendtime);
-            }
-        }
-        return $sendtime;
-    }
-
-    /**
-     * @param string $timestamp
-     * @return string
-     * @throws Exception
-     */
-    public static function prettify_timestamp($timestamp) {
-        $datetime = new DateTime("@$timestamp");
-        return $datetime->format('M d, Y');
     }
 
 }

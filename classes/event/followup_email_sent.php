@@ -27,7 +27,7 @@ use core\event\base;
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * The welcome_email_sent event class.
+ * The followup_email_sent event class.
  *
  * @since     Moodle 3.7
  * @copyright 2020 Matt Donnelly
@@ -46,7 +46,7 @@ class followup_email_sent extends base {
     }
 
     public function get_description() {
-        return "A followup email was sent to user {$this->userid}.";
+        return "A followup email of type {$this->other['relatedevent']} was sent to user {$this->userid} in course {$this->courseid}.";
     }
 
 }

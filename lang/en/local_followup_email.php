@@ -1,7 +1,7 @@
 <?php
 
 $string['pluginname'] = 'Followup Email';
-$string['welcomeemailsent'] = 'Followup email was sent';
+$string['followupemailsent'] = 'Followup email sent';
 $string['addnewfollowupemail'] = 'Add new Followup Email';
 $string['edititem'] = 'Edit';
 $string['deleteitem'] = 'Delete';

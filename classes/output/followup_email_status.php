@@ -54,8 +54,8 @@ class followup_email_status implements renderable, templatable
         $rows = array();
         foreach ($records as $record) {
             $userid = $record->get('userid');
-            $starttime = $record->get_start_time($this->followupemail,true);
-            $sendtime = $record->get_send_time($this->followupemail, true);
+            $starttime = $this->followupemail->get_start_time($userid, true);
+            $sendtime = $this->followupemail->get_send_time($userid, true);
             $emailsent = $record->get('email_sent') ? "Yes" : "No";
             $row = array(
                 'fullname' => $this->get_fullname($userid),
@@ -89,18 +89,19 @@ class followup_email_status implements renderable, templatable
      */
     public static function get_event_label($event)
     {
+        $label = '';
         switch ($event) {
             case FOLLOWUP_EMAIL_ACTIVITY_COMPLETION:
-                return 'event_activitycompletion';
+                $label = 'event_activitycompletion';
                 break;
             case FOLLOWUP_EMAIL_SINCE_ENROLLMENT:
-                return 'event_sinceenrollment';
+                $label = 'event_sinceenrollment';
                 break;
             case FOLLOWUP_EMAIL_SINCE_LAST_LOGIN:
-                return 'event_sincelastlogin';
+                $label = 'event_sincelastlogin';
                 break;
         }
-        return '';
+        return $label;
     }
 
     public function get_fullname($userid)
