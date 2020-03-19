@@ -26,25 +26,26 @@ class followup_email_form extends persistent {
         $mform->setConstant('courseid', $this->_customdata['courseid']);
 
         // Event that will trigger email
-        $mform->addElement('select', 'event', 'Associated event:', $this->get_events());
+        $mform->addElement('select', 'event', get_string('eventtomonitor', 'local_followup_email'), $this->get_events());
 
         //List of course modules
-        $mform->addElement('select', 'cmid', 'Activity:', $this->get_activities($courseid));
+        $mform->addElement('select', 'cmid', get_string('activitytomonitor', 'local_followup_email'), $this->get_activities($courseid));
         $mform->hideIf('cmid', 'event', 'eq', 1);
         $mform->hideIf('cmid', 'event', 'eq', 2);
         $mform->setDefault('cmid', 0);
         // When it should be sent
-        $mform->addElement('duration', 'followup_interval', 'When do you want to send the followup email?');
+        $options = ['optional' => false, 'defaultunit' => "86400"];
+        $mform->addElement('duration', 'followup_interval', get_string('whentosend', 'local_followup_email'), $options);
 
         // Email subject
-        $mform->addElement('text', 'email_subject', 'Email subject:', $attributes = array('size' => '50'));
+        $mform->addElement('text', 'email_subject', get_string('emailsubject', 'local_followup_email'), $attributes = array('size' => '50'));
 
         // Message
-        $mform->addElement('editor', 'email_body', 'Email body:');
+        $mform->addElement('editor', 'email_body', get_string('emailbody', 'local_followup_email'));
 
         // Groups
         if ($groups = $this->get_groups($courseid)) {
-            $mform->addElement('select', 'groupid', 'Group:', $this->get_groups($courseid));
+            $mform->addElement('select', 'groupid', get_string('limittogroup', 'local_followup_email'), $this->get_groups($courseid));
         };
 
         $this->add_action_buttons();
@@ -76,9 +77,9 @@ class followup_email_form extends persistent {
 
     private function get_events() {
         return [
-            FOLLOWUP_EMAIL_ACTIVITY_COMPLETION => 'Activity completion',
-            FOLLOWUP_EMAIL_SINCE_ENROLLMENT => 'Enrollment',
-            FOLLOWUP_EMAIL_SINCE_LAST_LOGIN => 'Since last course login'
+            FOLLOWUP_EMAIL_ACTIVITY_COMPLETION => get_string('activitycompletion', 'local_followup_email'),
+            FOLLOWUP_EMAIL_SINCE_ENROLLMENT => get_string('enrolment', 'local_followup_email'),
+            FOLLOWUP_EMAIL_SINCE_LAST_LOGIN => get_string('sincelastcourselogin', 'local_followup_email')
         ];
     }
 }

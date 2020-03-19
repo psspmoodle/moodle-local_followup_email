@@ -25,6 +25,8 @@ class followup_email_status implements renderable, templatable
     public $headings;
     // Array of status persistent records
     public $records;
+    // Related course module title
+    public $activity;
 
     /**
      * followup_email_status constructor.
@@ -39,6 +41,10 @@ class followup_email_status implements renderable, templatable
         $this->followupemail = $followupemail;
         $this->records = $this->process_records($records);
         $this->headings = $this->get_status_table_headings();
+        if ($cmid = $followupemail->get('cmid')) {
+            $activity = (get_fast_modinfo($followupemail->get('courseid'))->get_cm($cmid));
+            $this->activity = get_string('monitoredactivity', 'local_followup_email', $activity->name);
+        }
     }
 
     /**
@@ -95,7 +101,7 @@ class followup_email_status implements renderable, templatable
                 $label = 'event_activitycompletion';
                 break;
             case FOLLOWUP_EMAIL_SINCE_ENROLLMENT:
-                $label = 'event_sinceenrollment';
+                $label = 'event_sinceenrolment';
                 break;
             case FOLLOWUP_EMAIL_SINCE_LAST_LOGIN:
                 $label = 'event_sincelastlogin';
@@ -104,6 +110,11 @@ class followup_email_status implements renderable, templatable
         return $label;
     }
 
+    /**
+     * @param $userid
+     * @return string
+     * @throws dml_exception
+     */
     public function get_fullname($userid)
     {
         global $DB;
@@ -118,6 +129,7 @@ class followup_email_status implements renderable, templatable
         $data = [];
         $courseid = $this->followupemail->get('courseid');
         $data['rows'] = $this->records;
+        $data['activity'] = $this->activity;
         $data['returntext'] = get_string('returntoindex', 'local_followup_email');
         $data['indexurl'] = new moodle_url('/local/followup_email/index.php', array('courseid' => $courseid));
         return (object) array_merge($data, $this->get_status_table_headings());

@@ -46,7 +46,7 @@ class followup_email_sent extends base {
     }
 
     public function get_description() {
-        return "A followup email of type {$this->other['relatedevent']} was sent to user {$this->userid} in course {$this->courseid}.";
+        return "A followup email of type {$this->other['relatedevent']} was sent to user {$this->relateduserid} in course {$this->courseid}.";
     }
 
 }

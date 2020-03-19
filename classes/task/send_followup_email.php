@@ -3,6 +3,7 @@
 
 namespace local_followup_email\task;
 
+use coding_exception;
 use completion_info;
 use context_course;
 use core\persistent;
@@ -36,16 +37,14 @@ class send_followup_email extends scheduled_task
         global $DB;
         // Get all instances of followup emails
         $persistents = (new followup_email_persistent())::get_records();
+        $versiondate = substr(get_config('local_followup_email', 'version'), 0, -1);
+        $installtime = strtotime($versiondate);
         foreach ($persistents as $persistent) {
             $courseid = $persistent->get('courseid');
             $statuses = $persistent->get_tracked_users();
             foreach ($statuses as $status) {
                 $user = $DB->get_record('user', array('id' => $status->get('userid')));
-                $interval = (int) $persistent->get('followup_interval');
-                $startime = (int) $persistent->get_start_time($user->id);
-                // Has the interval since the user completed the course module elapsed?
-                //
-                if (($startime + $interval) < time() && $status->get('email_sent') == 0) {
+                if ($this->is_sendable($persistent, $status)) {
                     $contact = core_user::get_noreply_user();
                     $subject = $persistent->get('email_subject');
                     $messagehtml = format_text($persistent->get('email_body'), FORMAT_HTML, array('trusted' => true));
@@ -67,4 +66,30 @@ class send_followup_email extends scheduled_task
             }
         }
     }
+
+    /**
+     * 1. starttime needs to greater than zero else students who haven't logged in yet will be sent email
+     * 2. current time has to have passed the summed timestamp of start time and interval
+     * 3. email should not have been sent to the user already
+     * 4. if the event is SINCE_ENROLMENT, and the specified interval
+     *
+     * @param persistent $persistent
+     * @param persistent $status
+     * @return bool
+     * @throws coding_exception
+     */
+
+    private function is_sendable($persistent, $status) {
+        $sendable = false;
+        $interval = (int) $persistent->get('followup_interval');
+        $starttime = (int) $persistent->get_start_time($status->get('userid'));
+        if ($starttime > 0 && ($starttime + $interval) < time() && $status->get('email_sent') == 0) {
+            $sendable = true;
+            if ($persistent->get('event') == FOLLOWUP_EMAIL_SINCE_ENROLLMENT) {
+
+            }
+        }
+        return $sendable;
+    }
+
 }

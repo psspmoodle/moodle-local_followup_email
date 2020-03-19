@@ -2,28 +2,40 @@
 
 namespace local_followup_email;
 
+use coding_exception;
+use core\invalid_persistent_exception;
 use core\notification;
+use dml_exception;
+use moodle_exception;
 use moodle_url;
 
 class observer
 {
-
+    /**
+     * @param $event
+     * @return bool
+     * @throws coding_exception
+     * @throws invalid_persistent_exception
+     * @throws dml_exception
+     * @throws moodle_exception
+     */
     public static function user_enrolment_created($event)
     {
         $data = $event->get_data();
         $courseid = $data['courseid'];
         // Get all the followup instances associated with this course
         $persistents = followup_email_persistent::get_records(['courseid' => $courseid]);
-        // Add the new user to all of them.
-        foreach ($persistents as $persistent) {
-            followup_email_status_persistent::add_user($data['relateduserid'], $persistent);
+        // Add the new user to all of them that don't have a groupid
+        if ($persistents) {
+            foreach ($persistents as $persistent) {
+                if (!$persistent->get('groupid')) {
+                    followup_email_status_persistent::add_user($data['relateduserid'], $persistent);
+                }
+            }
+            $url = (new moodle_url('/local/followup_email/index.php', array('courseid' => $data['courseid'])))->out(false);
+            $notification = get_string('userenrolmentcreated', 'local_followup_email', $url);
+            notification::warning($notification);
         }
-
-        $followupurl = (new moodle_url('/local/followup_email/index.php', array('courseid' => $data['courseid'])))->out(false);
-        $notification = "The newly enrolled user may have been added to one or more Followup Emails in this course. 
-        Check the <a href=\"{$followupurl}\" target=\"_blank\">Followup Email admin page</a> for details.";
-        notification::warning($notification);
-
         return true;
     }
 

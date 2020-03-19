@@ -77,7 +77,10 @@ if ($followup_form->is_cancelled()) {
     }
 }
 
+
+
 echo $OUTPUT->header();
 echo $OUTPUT->heading($title);
+echo html_writer::div(get_string('editnotice', 'local_followup_email'), 'bg-y50 border-y300 p-3 mb-3');
 $followup_form->display();
 echo $OUTPUT->footer();

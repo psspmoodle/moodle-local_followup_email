@@ -1,27 +1,29 @@
 {{#deleteid}}
     {{> core/notification }}{{ /core/notification }}
 {{/deleteid}}
-
+{{#arerecords}}
 <div class="table-responsive mt-3">
     <table class="table">
         <thead>
         <tr>
             <th class="font-weight-bold">{{subjectline}}</th>
-            <th class="font-weight-bold">{{relatedevent}}</th>
-            <th class="font-weight-bold">{{group}}</th>
+            <th class="font-weight-bold">{{monitoredevent}}</th>
+            <th class="font-weight-bold">{{group_heading}}</th>
             <th class="font-weight-bold">{{modify}}</th>
         </tr>
         </thead>
-        {{#rows}}
+    {{#rows}}
         <tr>
             <td>{{title}}</td>
             <td>{{event}}</td>
             <td>{{#group}}{{group}}{{/group}}</td>
             <td class="text-center"><a href="{{statusurl}}">{{statustext}}</a> | <a href="{{editurl}}">{{edittext}}</a> | <a href="{{deleteurl}}">{{deletetext}}</a></td>
         </tr>
-        {{/rows}}
+    {{/rows}}
     </table>
-    <a class="btn btn-primary float-right" href="{{addurl}}">
+    {{/arerecords}}
+
+    <a class="btn btn-primary" href="{{addurl}}">
         {{addtext}}
     </a>
 

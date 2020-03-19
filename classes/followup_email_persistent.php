@@ -157,7 +157,7 @@ class followup_email_persistent extends persistent
                 break;
             case FOLLOWUP_EMAIL_SINCE_LAST_LOGIN:
                 if ($lastaccess = $DB->get_record('user_lastaccess', array('userid' => $userid, 'courseid' => $courseid))) {
-                    $starttime = $lastaccess;
+                    $starttime = $lastaccess->timeaccess;
                 }
                 break;
         }

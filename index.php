@@ -23,13 +23,14 @@ $context = context_course::instance($course->id);
 
 $persistent = new followup_email_persistent();
 if ($deleteid) {
-    $todelete = $persistent::get_record(array('id' => $deleteid));
-    $todelete->delete();
+    if ($todelete = $persistent::get_record(array('id' => $deleteid))) {
+        $todelete->delete();
+    }
 }
 $records = $persistent::get_records(['courseid' => $courseid]);
 $index = new followup_email_index($courseid, $records, $deleteid);
 
-$title = get_string('pluginname', 'local_followup_email');
+$title = get_string('pluginnameplural', 'local_followup_email');
 $PAGE->set_pagelayout('incourse');
 $PAGE->set_title($title);
 $PAGE->set_heading($course->fullname);

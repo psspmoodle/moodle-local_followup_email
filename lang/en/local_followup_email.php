@@ -1,6 +1,7 @@
 <?php
 
 $string['pluginname'] = 'Followup Email';
+$string['pluginnameplural'] = 'Followup Emails';
 $string['followupemailsent'] = 'Followup email sent';
 $string['addnewfollowupemail'] = 'Add new Followup Email';
 $string['edititem'] = 'Edit';
@@ -12,18 +13,31 @@ $string['itemdeleted'] = 'Followup Email deleted.';
 $string['status'] = 'Status';
 $string['returntoindex'] = 'Back';
 $string['deleteunenrolled'] = "Delete unenrolled users from recipient list?";
-$string['userremoved'] = '{$a->name} has been removed from the Followup Email <em>{$a->followupemail}';
+$string['userremoved'] = '{$a->name} has been removed from the Followup Email <b>{$a->followupemail}</b>.';
 $string['event_activitycompletion'] = 'Activity completion date';
-$string['event_sinceenrollment'] = 'Enrollment date';
+$string['event_sinceenrolment'] = 'Enrolment date';
 $string['event_sincelastlogin'] = 'Date of last course login';
 $string['datetobesent'] = 'Date to be sent';
 $string['emailsent'] = 'Email sent';
-$string['enrolled'] = 'Enrolled';
+$string['enroled'] = 'Enroled';
 $string['user'] = 'User name';
 $string['subjectline'] = 'Subject line';
-$string['relatedevent'] = 'Related event';
+$string['monitoredevent'] = 'Monitored event';
 $string['group'] = 'Group';
 $string['modify'] = 'Modify';
-$string['specifycoursemodule'] = 'Please specify a Course Module.';
+$string['specifycoursemodule'] = 'Please specify an activity to monitor.';
 $string['neverloggedin'] = 'Never';
+$string['monitoredactivity'] = 'Monitoring completion of: {$a}';
+$string['editnotice'] = 'Note: Changing the <b>Event to monitor</b> or <b>Limit to users of group</b> values and then saving the form will flush tracked users and remove any tracking data.';
+$string['userenrolmentcreated'] = 'The newly enrolled user may have been added to one or more Followup Emails in this course. Check the <a href="{$a}" target="_blank">Followup Email admin page</a> for details.';
+$string['eventtomonitor'] = 'Event to monitor:';
+$string['eventtomonitorhelp'] = 'test';
+$string['activitytomonitor'] = 'Activity to monitor:';
+$string['whentosend'] = 'How long after the monitored event is triggered should the followup email be sent?';
+$string['emailsubject'] = 'Email subject:';
+$string['emailbody'] = 'Email body:';
+$string['activitycompletion'] = 'Activity completion';
+$string['enrolment'] = 'Enrolment';
+$string['sincelastcourselogin'] = 'Since last course login';
+$string['limittogroup'] = 'Limit to users of group:';
 
