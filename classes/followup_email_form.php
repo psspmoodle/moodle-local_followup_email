@@ -18,6 +18,7 @@ class followup_email_form extends persistent {
     {
         $mform = $this->_form;
         $courseid = $this->_customdata['courseid'];
+
         // User ID
         $mform->addElement('hidden', 'userid');
         $mform->setConstant('userid', $this->_customdata['userid']);
@@ -35,18 +36,45 @@ class followup_email_form extends persistent {
         $mform->setDefault('cmid', 0);
         // When it should be sent
         $options = ['optional' => false, 'defaultunit' => "86400"];
-        $mform->addElement('duration', 'followup_interval', get_string('whentosend', 'local_followup_email'), $options);
+        $mform->addElement('duration', 'followup_interval', get_string('interval', 'local_followup_email'), $options);
+        $mform->addHelpButton('followup_interval', 'interval', 'local_followup_email');
+
+        // Start time
+        $mform->addElement('date_time_selector', 'starttime', get_string('starttime', 'local_followup_email'), array('optional' => true));
+        $mform->addHelpButton('starttime', 'starttime', 'local_followup_email');
+
+        // End time
+        $mform->addElement('date_time_selector', 'endtime', get_string('endtime', 'local_followup_email'), array('optional' => true));
+        $mform->addHelpButton('endtime', 'endtime', 'local_followup_email');
 
         // Email subject
         $mform->addElement('text', 'email_subject', get_string('emailsubject', 'local_followup_email'), $attributes = array('size' => '50'));
+        $mform->addRule('email_subject', get_string('required', 'local_followup_email'), 'required', null, 'server', false, false);
 
         // Message
         $mform->addElement('editor', 'email_body', get_string('emailbody', 'local_followup_email'));
+        $mform->addRule('email_body', get_string('required', 'local_followup_email'), 'required', null, 'server', false, false);
 
         // Groups
         if ($groups = $this->get_groups($courseid)) {
-            $mform->addElement('select', 'groupid', get_string('limittogroup', 'local_followup_email'), $this->get_groups($courseid));
+            $mform->addElement('select', 'groupid', get_string('limittogroup', 'local_followup_email'), $groups);
         };
+
+        // Timestamp comparison
+        $callback = function($times) {
+            if ($st = $times[0]) {
+                $starttime = make_timestamp($st['year'], $st['month'], $st['day'], $st['hour'], $st['minute']);
+            }
+            if ($et = $times[1]) {
+                $endtime = make_timestamp($et['year'], $et['month'], $et['day'], $et['hour'], $et['minute']);
+            }
+            if (isset($starttime) && isset($endtime)) {
+                return $starttime <= $endtime;
+            }
+            return true;
+        };
+        // This needs to be here at the end instead of with 'starttime' because otherwise Quickforms won't think 'endtime' is defined yet…
+        $mform->addRule(array('starttime', 'endtime'), get_string('starttimeerror', 'local_followup_email'), 'callback', $callback);
 
         $this->add_action_buttons();
     }
@@ -82,4 +110,9 @@ class followup_email_form extends persistent {
             FOLLOWUP_EMAIL_SINCE_LAST_LOGIN => get_string('sincelastcourselogin', 'local_followup_email')
         ];
     }
+
+    protected function extra_validation($data, $files, array &$errors) {
+        return array();
+    }
+
 }

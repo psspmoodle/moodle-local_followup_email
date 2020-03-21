@@ -52,6 +52,14 @@ class followup_email_persistent extends persistent
             'followup_interval' => array(
                 'type' => PARAM_INT,
             ),
+            'starttime' => array(
+                'type' => PARAM_INT,
+                'default' => 0
+            ),
+            'endtime' => array(
+                'type' => PARAM_INT,
+                'default' => 0
+            ),
             'groupid' => array(
                 'type' => PARAM_INT,
                 'default' => 0
@@ -113,17 +121,6 @@ class followup_email_persistent extends persistent
         return false;
     }
 
-    protected function validate_cmid($cmid) {
-        if ($this->get('event') != FOLLOWUP_EMAIL_ACTIVITY_COMPLETION) {
-            $this->set('cmid', 0);
-        } else {
-            if (!$cmid) {
-                return new lang_string('specifycoursemodule', 'local_followup_email');
-            }
-        }
-        return true;
-    }
-
     /**
      * @param followup_email_persistent $persistent
      * @param bool $prettify Return formatted date
@@ -134,37 +131,40 @@ class followup_email_persistent extends persistent
     public function get_start_time($userid, $prettify = false)
     {
         global $DB;
-        $courseid = $this->get('courseid');
-        $cm = new stdClass();
-        $cm->id = $this->get('cmid');
         $starttime = 0;
-        switch ($this->get('event')) {
-            case FOLLOWUP_EMAIL_ACTIVITY_COMPLETION:
-                $course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
-                $completioninfo = new completion_info($course);
-                $completiondata = $completioninfo->get_data($cm, false, $userid);
-                $starttime =  $completiondata->timemodified > 0 ? $completiondata->timemodified : 0;
-                break;
-            case FOLLOWUP_EMAIL_SINCE_ENROLLMENT:
-                $sql = "SELECT ue.timestart
-                        FROM {user_enrolments} ue
-                        JOIN {enrol} e
-                        ON ue.enrolid = e.id
-                        WHERE e.courseid = {$courseid}
-                        AND ue.userid = {$userid}";
-                $record = $DB->get_record_sql($sql, null, MUST_EXIST);
-                $starttime = $record->timestart;
-                break;
-            case FOLLOWUP_EMAIL_SINCE_LAST_LOGIN:
-                if ($lastaccess = $DB->get_record('user_lastaccess', array('userid' => $userid, 'courseid' => $courseid))) {
-                    $starttime = $lastaccess->timeaccess;
-                }
-                break;
-        }
-        if ($starttime > 0) {
-            if ($prettify) {
-                return $this->prettify_timestamp($starttime);
+        if ($this->get('starttime')) {
+            $starttime = $this->get('starttime');
+        } else {
+            $courseid = $this->get('courseid');
+            $cm = new stdClass();
+            $cm->id = $this->get('cmid');
+            switch ($this->get('event')) {
+                case FOLLOWUP_EMAIL_ACTIVITY_COMPLETION:
+                    $course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
+                    $completioninfo = new completion_info($course);
+                    $completiondata = $completioninfo->get_data($cm, false, $userid);
+                    $starttime = $completiondata->timemodified > 0 ? $completiondata->timemodified : 0;
+                    break;
+                case FOLLOWUP_EMAIL_SINCE_ENROLLMENT:
+                    $sql = "SELECT ue.timestart
+                            FROM {user_enrolments} ue
+                            JOIN {enrol} e
+                            ON ue.enrolid = e.id
+                            WHERE e.courseid = {$courseid}
+                            AND ue.userid = {$userid}";
+                    $record = $DB->get_record_sql($sql, null, MUST_EXIST);
+                    $starttime = $record->timestart;
+                    break;
+                case FOLLOWUP_EMAIL_SINCE_LAST_LOGIN:
+                    if ($lastaccess = $DB->get_record('user_lastaccess', array('userid' => $userid, 'courseid' => $courseid))) {
+                        $starttime = $lastaccess->timeaccess;
+                    }
+                    break;
+
             }
+        }
+        if ($starttime > 0 && $prettify) {
+            return $this->prettify_timestamp($starttime);
         }
         return $starttime;
     }
@@ -197,6 +197,24 @@ class followup_email_persistent extends persistent
     public static function prettify_timestamp($timestamp) {
         $datetime = new DateTime("@$timestamp");
         return $datetime->format('M d, Y');
+    }
+
+    protected function validate_cmid($cmid) {
+        if ($this->get('event') != FOLLOWUP_EMAIL_ACTIVITY_COMPLETION) {
+            $this->set('cmid', 0);
+        } else {
+            if (!$cmid) {
+                return new lang_string('specifycoursemodule', 'local_followup_email');
+            }
+        }
+        return true;
+    }
+
+    protected function validate_followup_interval($followup_interval) {
+        if (!$followup_interval > 0) {
+            return new lang_string('followup_intervalerror', 'local_followup_email');
+        }
+        return true;
     }
 
 }

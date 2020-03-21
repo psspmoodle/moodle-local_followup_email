@@ -40,9 +40,9 @@ $PAGE->navbar->add($title);
 
 // Assemble customdata for persistent
 $customdata = [
-    'persistent' => $persistent,  // An instance, or null.
-    'userid' => $USER->id,         // For the hidden userid field.
-    'courseid' => $course->id
+    'persistent' => $persistent,  // An instance, or null
+    'userid' => $USER->id,         // For the hidden userid field
+    'courseid' => $course->id,   // For the hidden courseid field
 ];
 
 $followup_form = new followup_email_form($PAGE->url->out(false), $customdata);
@@ -54,10 +54,14 @@ if ($followup_form->is_cancelled()) {
     if ($data = $followup_form->get_data()) {
         try {
             if (empty($data->id)) {     // No ID: create a new record.
-                // There's no DB field for this form field, so it will throw an error
+                unset($data->customstarttime);
+                unset($data->customendtime);
                 $persistent = new followup_email_persistent(0, $data);
                 $persistent->create();
             } else {    // We have an ID: update the record.
+                // See note above
+                unset($data->customstarttime);
+                unset($data->customendtime);
                 // We only want to flush tracked users if the related event or group have been changed
                 $flush = $data->event != $persistent->get('event')
                     || (object_property_exists($data, 'groupid')
@@ -76,8 +80,6 @@ if ($followup_form->is_cancelled()) {
         redirect(new moodle_url('/local/followup_email/index.php', array('courseid' => $courseid)));
     }
 }
-
-
 
 echo $OUTPUT->header();
 echo $OUTPUT->heading($title);
