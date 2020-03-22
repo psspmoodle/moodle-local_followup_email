@@ -7,6 +7,7 @@ use coding_exception;
 use completion_info;
 use core\persistent;
 use DateTime;
+use DateTimeZone;
 use dml_exception;
 use Exception;
 use lang_string;
@@ -49,14 +50,14 @@ class followup_email_persistent extends persistent
             'email_bodyformat' => array(
                 'type' => PARAM_INT,
             ),
-            'followup_interval' => array(
+            'sendtime' => array(
                 'type' => PARAM_INT,
             ),
-            'starttime' => array(
+            'monitorstart' => array(
                 'type' => PARAM_INT,
                 'default' => 0
             ),
-            'endtime' => array(
+            'monitorend' => array(
                 'type' => PARAM_INT,
                 'default' => 0
             ),
@@ -70,6 +71,10 @@ class followup_email_persistent extends persistent
         );
     }
 
+    /**
+     * @return bool|void
+     * @throws coding_exception
+     */
     public function before_delete()
     {
         $status = new followup_email_status_persistent();
@@ -82,6 +87,10 @@ class followup_email_persistent extends persistent
         return false;
     }
 
+    /**
+     * @return bool|void
+     * @throws dml_exception
+     */
     public function after_create()
     {
         return followup_email_status_persistent::add_enrolled_users($this);
@@ -109,6 +118,12 @@ class followup_email_persistent extends persistent
         return $statusrecords;
     }
 
+    /**
+     * @param $userid
+     * @return bool
+     * @throws coding_exception
+     * @throws dml_exception
+     */
     public function is_user_tracked($userid)
     {
         if ($trackedusers = $this->get_tracked_users()) {
@@ -122,18 +137,18 @@ class followup_email_persistent extends persistent
     }
 
     /**
-     * @param followup_email_persistent $persistent
-     * @param bool $prettify Return formatted date
-     * @return bool|string
+     * @param int $userid
+     * @param bool $stringify
+     * @return DateTime|string
      * @throws coding_exception
      * @throws dml_exception
      */
-    public function get_start_time($userid, $prettify = false)
+    public function get_start_time(int $userid, $stringify = false)
     {
         global $DB;
         $starttime = 0;
-        if ($this->get('starttime')) {
-            $starttime = $this->get('starttime');
+        if ($this->get('monitorstart')) {
+            $starttime = $this->get('monitorstart');
         } else {
             $courseid = $this->get('courseid');
             $cm = new stdClass();
@@ -160,23 +175,22 @@ class followup_email_persistent extends persistent
                         $starttime = $lastaccess->timeaccess;
                     }
                     break;
-
             }
         }
-        if ($starttime > 0 && $prettify) {
-            return $this->prettify_timestamp($starttime);
+        if ($starttime > 0 && $stringify) {
+            return userdate($starttime);
         }
-        return $starttime;
+        return (new DateTime())->setTimestamp($starttime);
     }
 
     /**
-     * @param followup_email_persistent $persistent
-     * @param bool $prettify
-     * @return bool|string
+     * @param int $userid
+     * @param bool $stringify
+     * @return bool|int|mixed|string
      * @throws coding_exception
      * @throws dml_exception
      */
-    public function get_send_time($userid, $prettify = false)
+    public function get_send_time(int $userid, bool $stringify = false)
     {
         $starttime = $this->get_start_time($userid);
         $sendtime = 0;
@@ -190,15 +204,10 @@ class followup_email_persistent extends persistent
     }
 
     /**
-     * @param string $timestamp
-     * @return string
-     * @throws Exception
+     * @param $cmid
+     * @return bool|lang_string
+     * @throws coding_exception
      */
-    public static function prettify_timestamp($timestamp) {
-        $datetime = new DateTime("@$timestamp");
-        return $datetime->format('M d, Y');
-    }
-
     protected function validate_cmid($cmid) {
         if ($this->get('event') != FOLLOWUP_EMAIL_ACTIVITY_COMPLETION) {
             $this->set('cmid', 0);
@@ -210,6 +219,11 @@ class followup_email_persistent extends persistent
         return true;
     }
 
+    /**
+     * @param $followup_interval
+     * @return bool|lang_string
+     * @throws coding_exception
+     */
     protected function validate_followup_interval($followup_interval) {
         if (!$followup_interval > 0) {
             return new lang_string('followup_intervalerror', 'local_followup_email');

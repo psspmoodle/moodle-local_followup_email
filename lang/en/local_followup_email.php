@@ -30,9 +30,8 @@ $string['monitoredactivity'] = 'Monitoring completion of: {$a}';
 $string['editnotice'] = 'Note: Changing the <b>Event to monitor</b> or <b>Limit to users of group</b> values and then saving the form will flush tracked users and remove any tracking data.';
 $string['userenrolmentcreated'] = 'The newly enrolled user may have been added to one or more Followup Emails in this course. Check the <a href="{$a}" target="_blank">Followup Email admin page</a> for details.';
 $string['eventtomonitor'] = 'Event to monitor:';
-$string['eventtomonitorhelp'] = 'test';
 $string['activitytomonitor'] = 'Activity to monitor:';
-$string['interval'] = 'Interval';
+$string['interval'] = 'Interval:';
 $string['interval_help'] = 'How long after the monitored event is triggered the followup email should be sent.';
 $string['emailsubject'] = 'Email subject:';
 $string['emailbody'] = 'Email body:';
@@ -40,16 +39,14 @@ $string['activitycompletion'] = 'Activity completion';
 $string['enrolment'] = 'Enrolment';
 $string['sincelastcourselogin'] = 'Since last course login';
 $string['limittogroup'] = 'Limit to users of group:';
-$string['starttime'] = 'Start time:';
-$string['endtime'] = 'End time:';
+$string['starttime'] = 'Monitoring start time:';
+$string['endtime'] = 'Monitoring end time:';
 $string['starttimeerror'] = 'Start time must be less than end time.';
-$string['endtimeerror'] = 'End time must be greater than start time.';
-$string['customstarttime'] = 'Specify custom start time:';
-$string['customendtime'] = 'Specify custom end time:';
+$string['endtimeerror'] = 'End time cannot be in the past.';
 $string['required'] = 'This field is required.';
 $string['followup_intervalerror'] = 'Interval cannot be zero.';
 $string['starttime_help'] = <<<EOD
-<span>A custom start time means that the plugin ignores default event start times and measures the interval from the specified time. For instance, if you create a welcome followup email monitoring the Enrolment event with an interval of 1 day, users who enroled in the course prior to that time will not receive that (unnessary and confusing) email. </span>
+<span>A custom start time means that the plugin ignores default event start times and starts monitoring from the specified time. For example, if, in a running course, you create a welcome followup email that monitors the Enrolment event and set an interval of 1 day, users who enroled in the course prior to that time will not receive that (confusing) email. </span>
 <span>Default start times are:</span>
 <ul>
     <li><b>Activity completion:</b> time user completes activity</li>

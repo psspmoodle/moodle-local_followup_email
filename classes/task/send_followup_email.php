@@ -92,6 +92,7 @@ class send_followup_email extends scheduled_task
         $messagehtml = format_text($persistent->get('email_body'), FORMAT_HTML, array('trusted' => true));
         $messagetext = html_to_text($messagehtml);
         email_to_user($user, $contact, $subject, $messagetext, $messagehtml);
+        return true;
     }
 
     /**

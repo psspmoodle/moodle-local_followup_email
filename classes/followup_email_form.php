@@ -2,7 +2,9 @@
 
 namespace local_followup_email;
 
+use coding_exception;
 use core\form\persistent;
+use moodle_exception;
 
 require_once("../../lib/formslib.php");
 
@@ -61,7 +63,7 @@ class followup_email_form extends persistent {
         };
 
         // Timestamp comparison
-        $callback = function($times) {
+        $validate_starttime = function($times) {
             if ($st = $times[0]) {
                 $starttime = make_timestamp($st['year'], $st['month'], $st['day'], $st['hour'], $st['minute']);
             }
@@ -73,12 +75,24 @@ class followup_email_form extends persistent {
             }
             return true;
         };
+
+        $validate_endtime = function($endtime) {
+            return $endtime < time();
+        };
+
         // This needs to be here at the end instead of with 'starttime' because otherwise Quickforms won't think 'endtime' is defined yet…
-        $mform->addRule(array('starttime', 'endtime'), get_string('starttimeerror', 'local_followup_email'), 'callback', $callback);
+        $mform->addRule(array('starttime', 'endtime'), get_string('starttimeerror', 'local_followup_email'), 'callback', $validate_starttime);
+        $mform->addRule('endtime', get_string('endtimeerror', 'local_followup_email'), 'callback', $validate_endtime);
 
         $this->add_action_buttons();
     }
 
+    /**
+     * @param $courseid
+     * @return array
+     * @throws coding_exception
+     * @throws moodle_exception
+     */
     private function get_activities($courseid) {
         $courseinfo = get_fast_modinfo($courseid);
         $cms = [];
@@ -90,6 +104,11 @@ class followup_email_form extends persistent {
         return $cms;
     }
 
+    /**
+     * @param $courseid
+     * @return array
+     * @throws coding_exception
+     */
     private function get_groups($courseid) {
         $groupobjects = groups_get_all_groups($courseid);
         $groups = [];
@@ -103,6 +122,10 @@ class followup_email_form extends persistent {
         return $groups;
     }
 
+    /**
+     * @return array
+     * @throws coding_exception
+     */
     private function get_events() {
         return [
             FOLLOWUP_EMAIL_ACTIVITY_COMPLETION => get_string('activitycompletion', 'local_followup_email'),
@@ -110,9 +133,4 @@ class followup_email_form extends persistent {
             FOLLOWUP_EMAIL_SINCE_LAST_LOGIN => get_string('sincelastcourselogin', 'local_followup_email')
         ];
     }
-
-    protected function extra_validation($data, $files, array &$errors) {
-        return array();
-    }
-
 }
