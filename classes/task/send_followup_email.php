@@ -71,7 +71,7 @@ class send_followup_email extends scheduled_task
         $starttime = (int) $persistent->get_start_time($status->get('userid'));
         $endtime = (int) $persistent->get('endtime');
         if ($starttime > 0
-            && ($starttime + $interval) < time()
+            && ($starttime + followup_interval) < time()
             && $status->get('email_sent') == 0
             && ($endtime == 0 || $endtime > time())
         ) {

@@ -38,16 +38,16 @@ class followup_email_form extends persistent {
         $mform->setDefault('cmid', 0);
         // When it should be sent
         $options = ['optional' => false, 'defaultunit' => "86400"];
-        $mform->addElement('duration', 'followup_interval', get_string('interval', 'local_followup_email'), $options);
-        $mform->addHelpButton('followup_interval', 'interval', 'local_followup_email');
+        $mform->addElement('duration', 'followup_interval', get_string('followup_interval', 'local_followup_email'), $options);
+        $mform->addHelpButton('followup_interval', 'followup_interval', 'local_followup_email');
 
         // Start time
-        $mform->addElement('date_time_selector', 'starttime', get_string('starttime', 'local_followup_email'), array('optional' => true));
-        $mform->addHelpButton('starttime', 'starttime', 'local_followup_email');
+        $mform->addElement('date_time_selector', 'monitorstart', get_string('monitorstart', 'local_followup_email'), array('optional' => true));
+        $mform->addHelpButton('monitorstart', 'monitorstart', 'local_followup_email');
 
         // End time
-        $mform->addElement('date_time_selector', 'endtime', get_string('endtime', 'local_followup_email'), array('optional' => true));
-        $mform->addHelpButton('endtime', 'endtime', 'local_followup_email');
+        $mform->addElement('date_time_selector', 'monitorend', get_string('monitorend', 'local_followup_email'), array('optional' => true));
+        $mform->addHelpButton('monitorend', 'monitorend', 'local_followup_email');
 
         // Email subject
         $mform->addElement('text', 'email_subject', get_string('emailsubject', 'local_followup_email'), $attributes = array('size' => '50'));
@@ -63,26 +63,26 @@ class followup_email_form extends persistent {
         };
 
         // Timestamp comparison
-        $validate_starttime = function($times) {
+        $validate_monitorstart = function($times) {
             if ($st = $times[0]) {
                 $starttime = make_timestamp($st['year'], $st['month'], $st['day'], $st['hour'], $st['minute']);
             }
             if ($et = $times[1]) {
-                $endtime = make_timestamp($et['year'], $et['month'], $et['day'], $et['hour'], $et['minute']);
+                $monitorend = make_timestamp($et['year'], $et['month'], $et['day'], $et['hour'], $et['minute']);
             }
-            if (isset($starttime) && isset($endtime)) {
-                return $starttime <= $endtime;
+            if (isset($starttime) && isset($monitorend)) {
+                return $starttime <= $monitorend;
             }
             return true;
         };
 
-        $validate_endtime = function($endtime) {
-            return $endtime < time();
+        $validate_monitorend = function($monitorend) {
+            return $monitorend > time();
         };
 
-        // This needs to be here at the end instead of with 'starttime' because otherwise Quickforms won't think 'endtime' is defined yet…
-        $mform->addRule(array('starttime', 'endtime'), get_string('starttimeerror', 'local_followup_email'), 'callback', $validate_starttime);
-        $mform->addRule('endtime', get_string('endtimeerror', 'local_followup_email'), 'callback', $validate_endtime);
+        // This needs to be here at the end instead of with 'starttime' because otherwise Quickforms won't think 'monitorend' is defined yet…
+        $mform->addRule(array('monitorstart', 'monitorend'), get_string('monitorstarterror', 'local_followup_email'), 'callback', $validate_monitorstart);
+        $mform->addRule('monitorend', get_string('monitorenderror', 'local_followup_email'), 'callback', $validate_monitorend);
 
         $this->add_action_buttons();
     }

@@ -6,6 +6,7 @@ defined('MOODLE_INTERNAL') || die();
 
 use coding_exception;
 use core\persistent;
+use DateTime;
 use moodle_exception;
 use moodle_url;
 use renderable;
@@ -21,12 +22,14 @@ class followup_email_index implements renderable, templatable
     public $records;
     public $deleteid;
     public $arerecords;
+    public $activity;
 
     /**
      * followup_email_index constructor.
      * @param int $courseid
      * @param persistent[] $records
      * @param int $deleteid
+     * @throws moodle_exception
      */
     public function __construct($courseid, array $records, $deleteid)
     {
@@ -49,9 +52,13 @@ class followup_email_index implements renderable, templatable
         foreach ($records as $record) {
             $params = array('courseid' => $this->courseid, 'followupid' => $record->get('id'));
             $event = followup_email_status::get_event_label($record->get('event'));
+            if ($cmid = $record->get('cmid')) {
+                $activity = (get_fast_modinfo($this->courseid)->get_cm($cmid));
+                $this->activity = $activity->name;
+            }
             $row = array(
                 'title' => $record->get('email_subject'),
-                'event' => get_string($event, 'local_followup_email'),
+                'event' => get_string($event, 'local_followup_email', $this->activity),
                 'group' => groups_get_group_name($record->get('groupid')),
                 'statusurl' => (new moodle_url('/local/followup_email/status.php', $params))->out(false),
                 'editurl' => (new moodle_url('/local/followup_email/edit.php', $params))->out(false),

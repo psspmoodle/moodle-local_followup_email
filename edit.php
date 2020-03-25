@@ -54,14 +54,9 @@ if ($followup_form->is_cancelled()) {
     if ($data = $followup_form->get_data()) {
         try {
             if (empty($data->id)) {     // No ID: create a new record.
-                unset($data->customstarttime);
-                unset($data->customendtime);
                 $persistent = new followup_email_persistent(0, $data);
                 $persistent->create();
             } else {    // We have an ID: update the record.
-                // See note above
-                unset($data->customstarttime);
-                unset($data->customendtime);
                 // We only want to flush tracked users if the related event or group have been changed
                 $flush = $data->event != $persistent->get('event')
                     || (object_property_exists($data, 'groupid')

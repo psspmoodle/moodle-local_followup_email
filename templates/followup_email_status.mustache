@@ -1,10 +1,17 @@
 <div class="table-responsive mt-3">
-    {{#activity}}
+
     <div class="p-3 bg-y50 border-y300">
-        <span>{{activity}}</span>
+        {{monitoredeventtext}}: {{monitoredevent}}
+        {{#monitorstart}}
+        <span class="d-block">Monitor start: {{monitorstart}}</span>
+        {{/monitorstart}}
+        {{#monitorend}}
+        <span class="d-block">Monitor end: {{monitorend}}</span>
+        {{/monitorend}}
     </div>
-    {{/activity}}
-    <table class="table">
+
+
+    <table class="table small">
         <thead>
         <tr>
             <th class="font-weight-bold">{{user}}</th>
@@ -16,8 +23,11 @@
         {{#rows}}
             <tr>
                 <td>{{fullname}}</td>
-                <td>{{starttime}}</td>
-                <td>{{sendtime}}</td>
+                <td>{{eventtime}}</td>
+                <td class="{{cellclass}}">{{sendtime}}
+                    {{#sendtimeinfo}}
+                        <a tabindex="0" role="button" data-toggle="popover" data-trigger="focus" title="Email will not be sent" data-content="{{sendtimeinfo}}"><i class="far fa-info-circle r600"></i></a>
+                {{/sendtimeinfo}}</td>
                 <td>{{emailsent}}</td>
             </tr>
         {{/rows}}
