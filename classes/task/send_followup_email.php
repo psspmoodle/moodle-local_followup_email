@@ -4,15 +4,14 @@
 namespace local_followup_email\task;
 
 use coding_exception;
-use completion_info;
 use context_course;
+use core\notification;
 use core\persistent;
 use core\task\scheduled_task;
 use core_user;
 use dml_exception;
 use local_followup_email\event\followup_email_sent;
 use local_followup_email\followup_email_persistent;
-use local_followup_email\followup_email_status_persistent;
 use local_followup_email\output\followup_email_status;
 use moodle_exception;
 use stdClass;
@@ -24,6 +23,7 @@ class send_followup_email extends scheduled_task
      * Return the task's name as shown in admin screens.
      *
      * @return string
+     * @throws coding_exception
      */
     public function get_name()
     {
@@ -31,7 +31,8 @@ class send_followup_email extends scheduled_task
     }
 
     /**
-     * Execute the task.
+     * @throws coding_exception
+     * @throws dml_exception
      * @throws moodle_exception
      */
     public function execute()
@@ -44,7 +45,7 @@ class send_followup_email extends scheduled_task
             $statuses = $persistent->get_tracked_users();
             foreach ($statuses as $status) {
                 $user = $DB->get_record('user', array('id' => $status->get('userid')));
-                if ($this->is_sendable($persistent, $status)) {
+                if ($persistent->is_sendable($status)) {
                     $this->send_followup_email($persistent, $user);
                     $this->log_followup_email($persistent, $user, $courseid);
                     $status->set('email_sent', 1);
@@ -55,34 +56,9 @@ class send_followup_email extends scheduled_task
     }
 
     /**
-     * 1. starttime needs to greater than zero else students who haven't logged in yet will be sent email
-     * 2. current time has to have passed the summed timestamp of start time and interval
-     * 3. email should not have been sent to the user already
-     *
      * @param persistent $persistent
-     * @param persistent $status
+     * @param $user
      * @return bool
-     * @throws coding_exception
-     */
-    private function is_sendable($persistent, $status)
-    {
-        $sendable = false;
-        $interval = (int) $persistent->get('followup_interval');
-        $starttime = (int) $persistent->get_start_time($status->get('userid'));
-        $endtime = (int) $persistent->get('endtime');
-        if ($starttime > 0
-            && ($starttime + followup_interval) < time()
-            && $status->get('email_sent') == 0
-            && ($endtime == 0 || $endtime > time())
-        ) {
-            $sendable = true;
-        }
-        return $sendable;
-    }
-
-    /**
-     * @param persistent $persistent
-     * @param stdClass $user
      * @throws coding_exception
      */
     private function send_followup_email(persistent $persistent, $user)
@@ -100,6 +76,7 @@ class send_followup_email extends scheduled_task
      * @param stdClass $user
      * @param int $courseid
      * @throws coding_exception
+     * @throws moodle_exception
      */
     private function log_followup_email(persistent $persistent, stdClass $user, int $courseid)
     {

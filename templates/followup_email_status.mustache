@@ -1,38 +1,36 @@
 <div class="table-responsive mt-3">
-
     <div class="p-3 bg-y50 border-y300">
-        {{monitoredeventtext}}: {{monitoredevent}}
-        {{#monitorstart}}
-        <span class="d-block">Monitor start: {{monitorstart}}</span>
-        {{/monitorstart}}
-        {{#monitorend}}
-        <span class="d-block">Monitor end: {{monitorend}}</span>
-        {{/monitorend}}
+        {{#str}}monitoredevent, local_followup_email{{/str}}: {{eventlabel}}
+        {{#monitorstarttime}}
+        <span class="d-block">{{#str}}monitorstart, local_followup_email{{/str}}{{monitorstarttime}}</span>
+        {{/monitorstarttime}}
+        {{#monitorendtime}}
+        <span class="d-block">{{#str}}monitorend, local_followup_email{{/str}}{{monitorendtime}}</span>
+        {{/monitorendtime}}
     </div>
 
 
-    <table class="table small">
+    <table class="table">
         <thead>
         <tr>
-            <th class="font-weight-bold">{{user}}</th>
-            <th class="font-weight-bold">{{event}}</th>
-            <th class="font-weight-bold">{{sendtime_heading}}</th>
-            <th class="font-weight-bold">{{emailsent_heading}}</th>
+            <th class="font-weight-bold">{{#str}}user, local_followup_email{{/str}}</th>
+            <th class="font-weight-bold">{{#str}}eventtime, local_followup_email{{/str}}</th>
+            <th class="font-weight-bold">{{#str}}status, local_followup_email{{/str}}</th>
         </tr>
         </thead>
         {{#rows}}
             <tr>
                 <td>{{fullname}}</td>
                 <td>{{eventtime}}</td>
-                <td class="{{cellclass}}">{{sendtime}}
-                    {{#sendtimeinfo}}
-                        <a tabindex="0" role="button" data-toggle="popover" data-trigger="focus" title="Email will not be sent" data-content="{{sendtimeinfo}}"><i class="far fa-info-circle r600"></i></a>
-                {{/sendtimeinfo}}</td>
-                <td>{{emailsent}}</td>
+                <td class="{{cellcolor}}">{{sendtime}}
+                    {{#willnotsendinfo}}
+                        <a tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-content="{{willnotsendinfo}}"><i class="far fa-info-circle r600"></i></a>
+                {{/willnotsendinfo}}
+                </td>
             </tr>
         {{/rows}}
     </table>
 </div>
 <a class="btn btn-light" href="{{indexurl}}">
-    {{returntext}}
+    {{#str}}returntoindex, local_followup_email{{/str}}
 </a>

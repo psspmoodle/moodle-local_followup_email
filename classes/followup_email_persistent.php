@@ -6,10 +6,13 @@ namespace local_followup_email;
 use coding_exception;
 use completion_info;
 use core\persistent;
+use core_date;
 use DateTime;
 use dml_exception;
 use Exception;
 use lang_string;
+use moodle_exception;
+use moodle_url;
 use stdClass;
 
 define('FOLLOWUP_EMAIL_ACTIVITY_COMPLETION', 0);
@@ -136,10 +139,8 @@ class followup_email_persistent extends persistent
     }
 
     /**
-     * Returns a DateTime() instance or 0
-     *
      * @param int $userid
-     * @return DateTime
+     * @return DateTime|int
      * @throws coding_exception
      * @throws dml_exception
      * @throws Exception
@@ -158,7 +159,7 @@ class followup_email_persistent extends persistent
                 $completioninfo = new completion_info($course);
                 $completiondata = $completioninfo->get_data($cm, false, $userid);
                 if ($completiondata->timemodified > 0) {
-                    $eventtime = (new DateTime())->setTimestamp($completiondata->timemodified);
+                    $eventtime = (new DateTime(null, core_date::get_server_timezone_object()))->setTimestamp($completiondata->timemodified);
                 }
                 break;
             // $eventtime will never be 0
@@ -170,13 +171,13 @@ class followup_email_persistent extends persistent
                         WHERE e.courseid = {$courseid}
                         AND ue.userid = {$userid}";
                 $record = $DB->get_record_sql($sql, null, MUST_EXIST);
-                $eventtime = (new DateTime())->setTimestamp($record->timestart);
+                $eventtime = (new DateTime(null, core_date::get_server_timezone_object()))->setTimestamp($record->timestart);
                 break;
             // $eventtime may be 0
             case FOLLOWUP_EMAIL_SINCE_LAST_LOGIN:
                 if ($lastaccess = $DB->get_record('user_lastaccess', array('userid' => $userid, 'courseid' => $courseid))) {
                     if ($timestamp = $lastaccess->timeaccess) {
-                        $eventtime = (new DateTime())->setTimestamp($timestamp);
+                        $eventtime = (new DateTime(null, core_date::get_server_timezone_object()))->setTimestamp($timestamp);
                     }
                 }
                 break;
@@ -201,6 +202,101 @@ class followup_email_persistent extends persistent
         }
         return $sendtime;
     }
+
+    /**
+     * @param persistent $status
+     * @param bool $infoonly
+     * @return bool|string
+     * @throws coding_exception
+     * @throws dml_exception
+     */
+    public function is_sendable(persistent $status, bool $infoonly = false) {
+        $sendable = false;
+        $eventtime = 0;
+        if ($eventtimeobj = $this->get_event_time($status->get('userid'))) {
+            $eventtime = $eventtimeobj->getTimestamp();
+        }
+        $sendtime = $this->get_send_time($status->get('userid'));
+        $monitorstart = $this->get('monitorstart');
+        $monitorend = $this->get('monitorend');
+        $willnotsendinfo = '';
+        if ($eventtime) {
+            if (($monitorstart && $monitorstart < $eventtime) && ($monitorend && $monitorend < $sendtime)) {
+                $willnotsendinfo = get_string('sendaftermonitoring', 'local_followup_email');
+            } elseif ($monitorstart && $monitorstart > $eventtime)  {
+                $willnotsendinfo = get_string('eventbeforemonitoring', 'local_followup_email');
+            } elseif ($monitorend && $monitorend < $sendtime) {
+                $willnotsendinfo = get_string('sendaftermonitoring', 'local_followup_email');
+            } else {
+                $sendable = $status->get('email_sent') ? false : true;
+            }
+        }
+        if ($infoonly) {
+            return $willnotsendinfo;
+        } else {
+            return $sendable;
+        }
+    }
+
+    /**
+     * @param int $userid
+     * @param persistent $record
+     * @return array
+     * @throws moodle_exception
+     * @throws coding_exception
+     * @throws dml_exception
+     * @throws Exception
+     */
+    public function format_email_status(int $userid, persistent $record) {
+        global $DB;
+        $emailstatus = array();
+        $eventtime = $sendtime = 0;
+        // 1: $eventtime is either a timestamp or 0
+        // If 0, no $sendtime
+        if ($eventtimeobj = $this->get_event_time($userid)) {
+            $eventtime = $eventtimeobj->getTimestamp();
+            $emailstatus['eventtime'] = userdate($eventtime);
+        } else {
+            $emailstatus['eventtime'] = get_string('noeventrecorded', 'local_followup_email');
+            $emailstatus['sendtime'] = '---';
+        }
+        // 2: $eventtime exists
+        if ($eventtime) {
+            // 2a: Email was sent
+           if ($record->get('email_sent')) {
+               $params = array(
+                   'chooselog' => 1,
+                   'id' => $this->get('courseid'),
+                   'origin' => 'cli',
+                   'edulevel' => 0
+               );
+               $emailstatus['sendtime'] = get_string('followupemailsent', 'local_followup_email');
+               $emailstatus['viewlog'] = get_string('viewlog', 'local_followup_email');
+               $emailstatus['logurl'] = (new moodle_url('/report/log/index.php', $params))->out(false);
+               $emailstatus['cellcolor'] = 'bg-g50';
+               // 2a-1: Email was sent before monitoring time was changed
+               if (!$this->is_sendable($record) && ($this->get('monitorstart') || $this->get('monitorend')) ){
+                   $emailstatus['willnotsendinfo'] = get_string('emailsentoutsidemonitoring', 'local_followup_email');
+               }
+           } else {  // 2b: Email was not sent
+               // is_sendable() only returns a string if the email isn't sendable
+               $emailstatus['willnotsendinfo'] = $this->is_sendable($record, true);
+               // If the event passed before the interval, and a monitorstart was not specified, show the sendtime as the next scheduled cron job.
+               // Otherwise, 'Date to be sent' column will confusingly show a past date.
+               $now = new DateTime(null, core_date::get_server_timezone_object());
+               if (($eventtime + $this->get('followup_interval')) < $now->getTimestamp()) {
+                   $task = $DB->get_record('task_scheduled', ['component' => 'local_followup_email'], 'nextruntime');
+                   $sendtime = $task->nextruntime;
+               } else {
+                   $sendtime = $this->get_send_time($userid);
+               }
+               $emailstatus['sendtime'] = userdate($sendtime);
+               $emailstatus['cellcolor'] = $emailstatus['willnotsendinfo'] ? 'bg-r50' : 'bg-g50';
+           }
+        }
+        return $emailstatus;
+    }
+
 
     /**
      * @param $cmid
