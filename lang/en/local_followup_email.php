@@ -58,3 +58,4 @@ $string['eventbeforemonitoring'] = 'Event occurs before monitor start. Email wil
 $string['sendaftermonitoring'] = 'Send time occurs after monitor end. Email will not be sent.';
 $string['noeventrecorded'] = 'No event recorded';
 $string['emailsentoutsidemonitoring'] = 'Note: A monitoring rule is in effect. If this rule was added after the Followup Email instance was created, this email may have been sent prior to making that change.';
+$string['sending'] = 'Sending ';

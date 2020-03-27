@@ -209,6 +209,7 @@ class followup_email_persistent extends persistent
      * @return bool|string
      * @throws coding_exception
      * @throws dml_exception
+     * @throws Exception
      */
     public function is_sendable(persistent $status, bool $infoonly = false) {
         $sendable = false;
@@ -217,8 +218,10 @@ class followup_email_persistent extends persistent
             $eventtime = $eventtimeobj->getTimestamp();
         }
         $sendtime = $this->get_send_time($status->get('userid'));
+        $interval = $this->get('followup_interval');
         $monitorstart = $this->get('monitorstart');
         $monitorend = $this->get('monitorend');
+        $now = (new DateTime("now", core_date::get_server_timezone_object()))->getTimestamp();
         $willnotsendinfo = '';
         if ($eventtime) {
             if (($monitorstart && $monitorstart < $eventtime) && ($monitorend && $monitorend < $sendtime)) {
@@ -227,15 +230,13 @@ class followup_email_persistent extends persistent
                 $willnotsendinfo = get_string('eventbeforemonitoring', 'local_followup_email');
             } elseif ($monitorend && $monitorend < $sendtime) {
                 $willnotsendinfo = get_string('sendaftermonitoring', 'local_followup_email');
+            } elseif (($eventtime + $interval) > $now) {
+                return false;
             } else {
                 $sendable = $status->get('email_sent') ? false : true;
             }
         }
-        if ($infoonly) {
-            return $willnotsendinfo;
-        } else {
-            return $sendable;
-        }
+        return $infoonly ? $willnotsendinfo :  $sendable;
     }
 
     /**
@@ -291,7 +292,7 @@ class followup_email_persistent extends persistent
                } else {
                    $sendtime = $this->get_send_time($userid);
                }
-               $emailstatus['sendtime'] = userdate($sendtime);
+               $emailstatus['sendtime'] = get_string('sending', 'local_followup_email') . userdate($sendtime);
                $emailstatus['cellcolor'] = $emailstatus['willnotsendinfo'] ? 'bg-r50' : 'bg-g50';
            }
         }
