@@ -277,6 +277,7 @@ class followup_email_persistent extends persistent
                // 2a-1: Email was sent before monitoring time was changed
                if (!$this->is_sendable($record) && ($this->get('monitorstart') || $this->get('monitorend')) ){
                    $emailstatus['willnotsendinfo'] = get_string('emailsentoutsidemonitoring', 'local_followup_email');
+                   $emailstatus['iconcolor'] = 'g600';
                }
            } else {  // 2b: Email was not sent
                // is_sendable() only returns a string if the email isn't sendable
@@ -284,7 +285,7 @@ class followup_email_persistent extends persistent
                // If the event passed before the interval, and a monitorstart was not specified, show the sendtime as the next scheduled cron job.
                // Otherwise, 'Date to be sent' column will confusingly show a past date.
                $now = new DateTime(null, core_date::get_server_timezone_object());
-               if (($eventtime + $this->get('followup_interval')) < $now->getTimestamp()) {
+               if ((($eventtime + $this->get('followup_interval')) < $now->getTimestamp()) && $this->is_sendable($record)) {
                    $task = $DB->get_record('task_scheduled', ['component' => 'local_followup_email'], 'nextruntime');
                    $sendtime = $task->nextruntime;
                } else {

@@ -71,7 +71,8 @@ class followup_email_status implements renderable, templatable
                 'logurl' => $stat['logurl'] ?? null,
                 'viewlog' => $stat['viewlog'] ?? null,
                 'willnotsendinfo' => $stat['willnotsendinfo'] ?? null,
-                'cellcolor' => $stat['cellcolor'] ?? null
+                'cellcolor' => $stat['cellcolor'] ?? null,
+                'iconcolor' => $stat['iconcolor'] ?? 'r600'
             );
             $rows[] = $row;
         }

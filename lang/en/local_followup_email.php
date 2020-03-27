@@ -54,7 +54,7 @@ $string['monitorstart_help'] = <<<EOD
 </ul>
 EOD;
 $string['monitorend_help'] = 'Followup email monitoring goes on indefinitely. Specifying a custom end time will disable monitoring.';
-$string['eventbeforemonitoring'] = 'Event occurs before monitor start';
-$string['sendaftermonitoring'] = 'Send time occurs after monitor end';
+$string['eventbeforemonitoring'] = 'Event occurs before monitor start. Email will not be sent.';
+$string['sendaftermonitoring'] = 'Send time occurs after monitor end. Email will not be sent.';
 $string['noeventrecorded'] = 'No event recorded';
-$string['emailsentoutsidemonitoring'] = 'Email was sent prior to a change in monitor start or end time.';
+$string['emailsentoutsidemonitoring'] = 'Note: A monitoring rule is in effect. If this rule was added after the Followup Email instance was created, this email may have been sent prior to making that change.';

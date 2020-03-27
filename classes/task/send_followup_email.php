@@ -1,11 +1,9 @@
 <?php
 
-
 namespace local_followup_email\task;
 
 use coding_exception;
 use context_course;
-use core\notification;
 use core\persistent;
 use core\task\scheduled_task;
 use core_user;
@@ -15,7 +13,6 @@ use local_followup_email\followup_email_persistent;
 use local_followup_email\output\followup_email_status;
 use moodle_exception;
 use stdClass;
-
 
 class send_followup_email extends scheduled_task
 {
