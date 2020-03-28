@@ -212,6 +212,7 @@ class followup_email_persistent extends persistent
      * @throws Exception
      */
     public function is_sendable(persistent $status, bool $infoonly = false) {
+        global $DB;
         $sendable = false;
         $eventtime = 0;
         if ($eventtimeobj = $this->get_event_time($status->get('userid'))) {
@@ -221,6 +222,9 @@ class followup_email_persistent extends persistent
         $interval = $this->get('followup_interval');
         $monitorstart = $this->get('monitorstart');
         $monitorend = $this->get('monitorend');
+        $course = $DB->get_record('course', ['id' => $this->get('courseid')], '*', MUST_EXIST);
+        $completioninfo = new completion_info($course);
+        $completion = $completioninfo->get_completion($status->get('userid'), 'course');
         $now = (new DateTime("now", core_date::get_server_timezone_object()))->getTimestamp();
         $willnotsendinfo = '';
         if ($eventtime) {
@@ -230,6 +234,8 @@ class followup_email_persistent extends persistent
                 $willnotsendinfo = get_string('eventbeforemonitoring', 'local_followup_email');
             } elseif ($monitorend && $monitorend < $sendtime) {
                 $willnotsendinfo = get_string('sendaftermonitoring', 'local_followup_email');
+            } elseif (!$completion) {
+                $willnotsendinfo = get_string('alreadycompletedcourse', 'local_followup_email');
             } elseif (($eventtime + $interval) > $now) {
                 return false;
             } else {
@@ -292,8 +298,13 @@ class followup_email_persistent extends persistent
                } else {
                    $sendtime = $this->get_send_time($userid);
                }
-               $emailstatus['sendtime'] = get_string('sending', 'local_followup_email') . userdate($sendtime);
-               $emailstatus['cellcolor'] = $emailstatus['willnotsendinfo'] ? 'bg-r50' : 'bg-g50';
+               if (!$emailstatus['willnotsendinfo']) {
+                   $emailstatus['sendtime'] = get_string('sending', 'local_followup_email') . userdate($sendtime);
+                   $emailstatus['cellcolor'] = 'bg-y50';
+               } else {
+                   $emailstatus['sendtime'] = userdate($sendtime);
+                   $emailstatus['cellcolor'] = 'bg-r50';
+               }
            }
         }
         return $emailstatus;

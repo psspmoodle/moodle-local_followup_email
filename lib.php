@@ -7,10 +7,11 @@ defined('MOODLE_INTERNAL') || die;
  *
  * @param navigation_node $navigation The navigation node to extend
  * @param stdClass $course The course to object for the report
- * @param stdClass $context The context of the course
+ * @param context_course $context The context of the course
+ * @throws coding_exception
+ * @throws moodle_exception
  */
 function local_followup_email_extend_navigation_course($navigation, $course, $context) {
-    global $CFG, $OUTPUT;
     if (has_capability('report/participation:view', $context)) {
         $url = new moodle_url('/local/followup_email/index.php', array('courseid'=>$course->id));
         $navigation->add(get_string('pluginname', 'local_followup_email'),
