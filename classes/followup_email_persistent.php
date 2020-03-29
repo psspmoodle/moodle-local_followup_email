@@ -224,7 +224,7 @@ class followup_email_persistent extends persistent
         $monitorend = $this->get('monitorend');
         $course = $DB->get_record('course', ['id' => $this->get('courseid')], '*', MUST_EXIST);
         $completioninfo = new completion_info($course);
-        $completion = $completioninfo->get_completion($status->get('userid'), 'course');
+        $completion = $completioninfo->is_course_complete($status->get('userid'));
         $now = (new DateTime("now", core_date::get_server_timezone_object()))->getTimestamp();
         $willnotsendinfo = '';
         if ($eventtime) {
@@ -234,7 +234,7 @@ class followup_email_persistent extends persistent
                 $willnotsendinfo = get_string('eventbeforemonitoring', 'local_followup_email');
             } elseif ($monitorend && $monitorend < $sendtime) {
                 $willnotsendinfo = get_string('sendaftermonitoring', 'local_followup_email');
-            } elseif (!$completion) {
+            } elseif ($completion) {
                 $willnotsendinfo = get_string('alreadycompletedcourse', 'local_followup_email');
             } elseif (($eventtime + $interval) > $now) {
                 return false;
