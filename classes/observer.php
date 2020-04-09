@@ -87,9 +87,10 @@ class observer
         $groupid = $data['objectid'];
         $userid = $data['relateduserid'];
         // Get all the followup instances associated with this course AND this group
-        $persistents = followup_email_persistent::get_records(['courseid' => $courseid, 'groupid' => $groupid]);
-        foreach ($persistents as $persistent) {
-            followup_email_status_persistent::remove_users($persistent, $userid);
+        if ($persistents = followup_email_persistent::get_records(['courseid' => $courseid, 'groupid' => $groupid])) {
+            foreach ($persistents as $persistent) {
+                followup_email_status_persistent::remove_users($persistent, $userid);
+            }
         }
     }
 
@@ -98,9 +99,10 @@ class observer
         $data = $event->get_data();
         $courseid = $data['courseid'];
         $groupid = $data['objectid'];
-        $persistents = followup_email_persistent::get_records(['courseid' => $courseid, 'groupid' => $groupid]);
-        foreach ($persistents as $persistent) {
-            followup_email_status_persistent::remove_users($persistent);
+        if ($persistents = followup_email_persistent::get_records(['courseid' => $courseid, 'groupid' => $groupid])) {
+            foreach ($persistents as $persistent) {
+                followup_email_status_persistent::remove_users($persistent);
+            }
         }
     }
 
@@ -108,9 +110,10 @@ class observer
     {
         $data = $event->get_data();
         $cmid = $data['objectid'];
-        $persistents = followup_email_persistent::get_records(['cmid' => $cmid]);
-        foreach ($persistents as $persistent) {
-            $persistent->delete();
+        if ($persistents = followup_email_persistent::get_records(['cmid' => $cmid])) {
+            foreach ($persistents as $persistent) {
+                $persistent->delete();
+            }
         }
     }
 
