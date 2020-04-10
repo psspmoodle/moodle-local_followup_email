@@ -15,6 +15,11 @@ use dml_exception;
 use moodle_exception;
 use moodle_url;
 
+/**
+ * Class observer
+ * @package local_followup_email
+ */
+
 class observer
 {
     /**
@@ -25,7 +30,7 @@ class observer
      * @throws invalid_persistent_exception
      * @throws moodle_exception
      */
-    public static function user_enrolment_created (user_enrolment_created $event)
+    public static function user_enrolment_created(user_enrolment_created $event)
     {
         $data = $event->get_data();
         // Get all the followup instances associated with this course
@@ -44,7 +49,7 @@ class observer
         return true;
     }
 
-    public static function user_enrolment_deleted (user_enrolment_deleted $event)
+    public static function user_enrolment_deleted(user_enrolment_deleted $event)
     {
         global $DB;
         $data = $event->get_data();
@@ -65,7 +70,7 @@ class observer
         return true;
     }
 
-    public static function group_member_added (group_member_added $event)
+    public static function group_member_added(group_member_added $event)
     {
         $data = $event->get_data();
         $courseid = $data['courseid'];
@@ -84,7 +89,7 @@ class observer
         }
     }
 
-    public static function group_member_removed (group_member_removed $event)
+    public static function group_member_removed(group_member_removed $event)
     {
         $data = $event->get_data();
         $courseid = $data['courseid'];
@@ -98,7 +103,7 @@ class observer
         }
     }
 
-    public static function group_deleted (group_deleted $event)
+    public static function group_deleted(group_deleted $event)
     {
         $data = $event->get_data();
         $courseid = $data['courseid'];
@@ -110,7 +115,7 @@ class observer
         }
     }
 
-    public static function course_module_deleted (course_module_deleted $event)
+    public static function course_module_deleted(course_module_deleted $event)
     {
         $data = $event->get_data();
         $cmid = $data['objectid'];
