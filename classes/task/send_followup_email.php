@@ -12,6 +12,7 @@ use local_followup_email\event\followup_email_sent;
 use local_followup_email\followup_email_persistent;
 use local_followup_email\output\followup_email_status;
 use moodle_exception;
+use moodle_url;
 use stdClass;
 
 class send_followup_email extends scheduled_task
@@ -57,12 +58,14 @@ class send_followup_email extends scheduled_task
      * @param $user
      * @return bool
      * @throws coding_exception
+     * @throws moodle_exception
      */
     private function send_followup_email(persistent $persistent, $user)
     {
         $contact = core_user::get_noreply_user();
         $subject = $persistent->get('email_subject');
-        $messagehtml = format_text($persistent->get('email_body'), FORMAT_HTML, array('trusted' => true));
+        $message = $this->filter($user, $persistent->get('email_body'));
+        $messagehtml = format_text($message, FORMAT_HTML, array('trusted' => true));
         $messagetext = html_to_text($messagehtml);
         email_to_user($user, $contact, $subject, $messagetext, $messagehtml);
         return true;
@@ -84,6 +87,27 @@ class send_followup_email extends scheduled_task
             'other' => ['relatedevent' => get_string($eventlabel, 'local_followup_email')]
         ));
         $event->trigger();
+    }
+
+    /**
+     * @param $body
+     * @return mixed
+     * @throws moodle_exception
+     */
+    private function filter($user, $body) {
+        global $COURSE, $SITE;
+        $fields = array(
+            'coursename' => $COURSE->fullname,
+            'courseurl' => (new moodle_url('/course/view.php', ['id' => $COURSE->id]))->out(),
+            'firstname' => $user->firstname,
+            'lastname' => $user->lastname,
+            'sitename' => format_string($SITE->shortname, true, ['context' => context_course::instance(SITEID), "escape" => false]),
+            'forgotpasswordurl' => (new moodle_url('/login/index.php'))->out()
+        );
+        foreach ($fields as $k => $v) {
+            $body = preg_replace('/\[\[' . $k . ']]/', $v, $body);
+        }
+        return $body;
     }
 
 }
