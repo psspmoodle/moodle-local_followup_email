@@ -4,7 +4,7 @@ $tasks = [
     [
         'classname' => 'local_followup_email\task\send_followup_email',
         'blocking' => 0,
-        'minute' => '*',
+        'minute' => '59',
         'hour' => '*',
         'day' => '*',
         'month' => '*',
