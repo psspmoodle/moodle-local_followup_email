@@ -15,6 +15,8 @@ use moodle_exception;
 use moodle_url;
 use stdClass;
 
+require_once($CFG->libdir.'/completionlib.php');
+
 define('FOLLOWUP_EMAIL_ACTIVITY_COMPLETION', 0);
 define('FOLLOWUP_EMAIL_SINCE_ENROLLMENT', 1);
 define('FOLLOWUP_EMAIL_SINCE_LAST_LOGIN', 2);

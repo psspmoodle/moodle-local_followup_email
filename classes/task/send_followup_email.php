@@ -95,14 +95,8 @@ class send_followup_email extends scheduled_task
      * @throws moodle_exception
      */
     private function filter($user, $body) {
-//        global $COURSE, $SITE;
         $fields = array(
-//            'coursename' => $COURSE->fullname,
-//            'courseurl' => (new moodle_url('/course/view.php', ['id' => $COURSE->id]))->out(),
             'firstname' => $user->firstname,
-//            'lastname' => $user->lastname,
-//            'sitename' => format_string($SITE->shortname, true, ['context' => context_course::instance(SITEID), "escape" => false]),
-//            'forgotpasswordurl' => (new moodle_url('/login/index.php'))->out()
         );
         foreach ($fields as $k => $v) {
             $body = preg_replace('/\[\[' . $k . ']]/', $v, $body);
