@@ -7,6 +7,7 @@ use context_course;
 use core\persistent;
 use core\task\scheduled_task;
 use core_user;
+use DateTime;
 use dml_exception;
 use local_followup_email\event\followup_email_sent;
 use local_followup_email\followup_email_persistent;
@@ -39,6 +40,9 @@ class send_followup_email extends scheduled_task
         // Get all instances of followup emails
         $persistents = (new followup_email_persistent())::get_records();
         foreach ($persistents as $persistent) {
+            if ($persistent->get('monitorend') < new DateTime('now')) {
+                continue;
+            }
             $courseid = $persistent->get('courseid');
             $statuses = $persistent->get_tracked_users();
             foreach ($statuses as $status) {
