@@ -8,8 +8,6 @@
  */
 
 use local_followup_email\followup_email_persistent;
-use local_followup_email\followup_email_status_persistent;
-use local_followup_email\output\followup_email_index;
 use local_followup_email\output\followup_email_status;
 
 require_once("../../config.php");

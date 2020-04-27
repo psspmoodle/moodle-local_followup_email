@@ -236,7 +236,7 @@ class followup_email_persistent extends persistent
                 $willnotsendinfo = get_string('eventbeforemonitoring', 'local_followup_email');
             } elseif ($monitorend && $monitorend < $sendtime) {
                 $willnotsendinfo = get_string('sendaftermonitoring', 'local_followup_email');
-            } elseif ($completion && $this->get('event') === FOLLOWUP_EMAIL_SINCE_LAST_LOGIN) {
+            } elseif ($completion && $this->get('event') == FOLLOWUP_EMAIL_SINCE_LAST_LOGIN) {
                 $willnotsendinfo = get_string('alreadycompletedcourse', 'local_followup_email');
             } elseif (($eventtime + $interval) > $now) {
                 return false;

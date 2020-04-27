@@ -40,7 +40,7 @@ class send_followup_email extends scheduled_task
         // Get all instances of followup emails
         $persistents = (new followup_email_persistent())::get_records();
         foreach ($persistents as $persistent) {
-            if ($persistent->get('monitorend') < new DateTime('now')) {
+            if ($persistent->get('monitorend') && $persistent->get('monitorend') < new DateTime('now')) {
                 continue;
             }
             $courseid = $persistent->get('courseid');
