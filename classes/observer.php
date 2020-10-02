@@ -3,6 +3,7 @@
 namespace local_followup_email;
 
 use coding_exception;
+use context_system;
 use core\event\course_module_deleted;
 use core\event\group_deleted;
 use core\event\group_member_added;
@@ -43,8 +44,11 @@ class observer
                 }
             }
             $url = (new moodle_url('/local/followup_email/index.php', array('courseid' => $data['courseid'])))->out(false);
-            $notification = get_string('userenrolmentcreated', 'local_followup_email', $url);
-            notification::warning($notification);
+            $context = context_system::instance();
+            if (has_capability('managefollowupemail', $context)) {
+                $notification = get_string('userenrolmentcreated', 'local_followup_email', $url);
+                notification::warning($notification);
+            }
         }
         return true;
     }
@@ -60,11 +64,14 @@ class observer
             // Is the user tracked in this followup email instance?
             if ($persistent->is_user_tracked($userid)) {
                 followup_email_status_persistent::remove_users($persistent, $userid);
-                $userobj = $DB->get_record('user', ['id' => $userid], 'firstname, lastname');
-                $fullname = $userobj->firstname . ' ' . $userobj->lastname;
-                $a = ['name' => $fullname, 'followupemail' => $persistent->get('email_subject')];
-                $notification = get_string('userremoved', 'local_followup_email', $a);
-                notification::warning($notification);
+                $context = context_system::instance();
+                if (has_capability('managefollowupemail', $context)) {
+                    $userobj = $DB->get_record('user', ['id' => $userid], 'firstname, lastname');
+                    $fullname = $userobj->firstname . ' ' . $userobj->lastname;
+                    $a = ['name' => $fullname, 'followupemail' => $persistent->get('email_subject')];
+                    $notification = get_string('userremoved', 'local_followup_email', $a);
+                    notification::warning($notification);
+                }
             }
         }
         return true;
