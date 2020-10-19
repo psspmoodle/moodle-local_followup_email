@@ -166,14 +166,16 @@ class followup_email_persistent extends persistent
                 break;
             // $eventtime will never be 0
             case FOLLOWUP_EMAIL_SINCE_ENROLLMENT:
-                $sql = "SELECT ue.timestart
+                // Manual and self enrolment methods populate the timestart field in the user_enrolments table,
+                // but not cohort sync, so we use timecreated
+                $sql = "SELECT ue.timecreated
                         FROM {user_enrolments} ue
                         JOIN {enrol} e
                         ON ue.enrolid = e.id
                         WHERE e.courseid = {$courseid}
                         AND ue.userid = {$userid}";
                 $record = $DB->get_record_sql($sql, null, MUST_EXIST);
-                $eventtime = (new DateTime(null, core_date::get_server_timezone_object()))->setTimestamp($record->timestart);
+                $eventtime = (new DateTime(null, core_date::get_server_timezone_object()))->setTimestamp($record->timecreated);
                 break;
             // $eventtime may be 0
             case FOLLOWUP_EMAIL_SINCE_LAST_LOGIN:
