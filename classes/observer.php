@@ -45,7 +45,7 @@ class observer
             }
             $url = (new moodle_url('/local/followup_email/index.php', array('courseid' => $data['courseid'])))->out(false);
             $context = context_system::instance();
-            if (has_capability('managefollowupemail', $context)) {
+            if (has_capability('local/followup_email:managefollowupemail', $context)) {
                 $notification = get_string('userenrolmentcreated', 'local_followup_email', $url);
                 notification::warning($notification);
             }
@@ -65,7 +65,7 @@ class observer
             if ($persistent->is_user_tracked($userid)) {
                 followup_email_status_persistent::remove_users($persistent, $userid);
                 $context = context_system::instance();
-                if (has_capability('managefollowupemail', $context)) {
+                if (has_capability('local/followup_email:managefollowupemail', $context)) {
                     $userobj = $DB->get_record('user', ['id' => $userid], 'firstname, lastname');
                     $fullname = $userobj->firstname . ' ' . $userobj->lastname;
                     $a = ['name' => $fullname, 'followupemail' => $persistent->get('email_subject')];

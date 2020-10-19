@@ -19,7 +19,8 @@ $PAGE->set_url('/local/followup_email/index.php', array('courseid'=>$courseid));
 
 $course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
 require_login($course);
-$context = context_course::instance($course->id);
+$context = context_system::instance();
+require_capability('local/followup_email:managefollowupemail', $context);
 
 $persistent = new followup_email_persistent();
 if ($deleteid) {

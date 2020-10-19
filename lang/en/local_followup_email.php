@@ -60,3 +60,4 @@ $string['noeventrecorded'] = 'No event recorded';
 $string['emailsentoutsidemonitoring'] = 'Note: A monitoring rule is in effect. If this rule was added after the Followup Email instance was created, this email may have been sent prior to making that change.';
 $string['sending'] = 'Sending ';
 $string['alreadycompletedcourse'] = 'User has already completed course.';
+$string['followup_email:managefollowupemail'] = 'Manage Followup Emails';
