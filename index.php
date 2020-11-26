@@ -7,11 +7,11 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-use local_followup_email\followup_email_persistent;
+use local_followup_email\persistent_base;
 use local_followup_email\output\followup_email_index;
 
 require_once("../../config.php");
-require_once("classes/followup_email_form.php");
+require_once("classes/form.php");
 
 $courseid = required_param('courseid', PARAM_INT);
 $deleteid = optional_param('followupid',  null,PARAM_INT);
@@ -22,7 +22,7 @@ require_login($course);
 $context = context_system::instance();
 require_capability('local/followup_email:managefollowupemail', $context);
 
-$persistent = new followup_email_persistent();
+$persistent = new persistent_base();
 if ($deleteid) {
     if ($todelete = $persistent::get_record(array('id' => $deleteid))) {
         $todelete->delete();

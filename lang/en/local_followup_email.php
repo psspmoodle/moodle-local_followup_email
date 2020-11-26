@@ -61,3 +61,5 @@ $string['emailsentoutsidemonitoring'] = 'Note: A monitoring rule is in effect. I
 $string['sending'] = 'Sending ';
 $string['alreadycompletedcourse'] = 'User has already completed course.';
 $string['followup_email:managefollowupemail'] = 'Manage Followup Emails';
+$string['sendfollowupemailactivity'] = 'Send activity completion followup email';
+$string['sendfollowupemailsinceenrolment'] = 'Send since enrolment followup email';

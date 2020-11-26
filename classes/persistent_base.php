@@ -4,7 +4,7 @@
 namespace local_followup_email;
 
 use coding_exception;
-use completion_info;
+use core\invalid_persistent_exception;
 use core\persistent;
 use core_date;
 use DateTime;
@@ -13,7 +13,6 @@ use Exception;
 use lang_string;
 use moodle_exception;
 use moodle_url;
-use stdClass;
 
 require_once($CFG->libdir.'/completionlib.php');
 
@@ -21,11 +20,13 @@ define('FOLLOWUP_EMAIL_ACTIVITY_COMPLETION', 0);
 define('FOLLOWUP_EMAIL_SINCE_ENROLLMENT', 1);
 define('FOLLOWUP_EMAIL_SINCE_LAST_LOGIN', 2);
 
-class followup_email_persistent extends persistent
+class persistent_base extends persistent
 {
 
     /** Table name for the persistent. */
     const TABLE = 'followup_email';
+
+    protected $trackedusers;
 
     /**
      * Return the definition of the properties of this model.
@@ -81,7 +82,7 @@ class followup_email_persistent extends persistent
      */
     public function before_delete()
     {
-        $status = new followup_email_status_persistent();
+        $status = new persistent_status();
         if ($records = $status::get_records(array('followup_email_id' => $this->get('id')))) {
             foreach ($records as $record) {
                 $record->delete();
@@ -93,19 +94,25 @@ class followup_email_persistent extends persistent
 
     /**
      * @return bool|void
-     * @throws dml_exception
-     */
-    public function after_create()
-    {
-        return followup_email_status_persistent::add_enrolled_users($this);
-    }
-
-    /**
-     * @return followup_email_status_persistent[]
+     * @throws invalid_persistent_exception
      * @throws coding_exception
      * @throws dml_exception
      */
-    public function get_tracked_users()
+
+    public function after_create()
+    {
+        return persistent_status::add_enrolled_users($this);
+    }
+
+    /**
+     * Get the records of all users associated with a followup email record of a particular event type
+     *
+     * @param $eventtype null|int Specify for event-related subset of tracked users
+     * @return persistent_status[] Array of records
+     * @throws coding_exception
+     * @throws dml_exception
+     */
+    public function get_tracked_users($eventtype = null)
     {
         global $DB;
         $statusrecords = [];
@@ -115,9 +122,12 @@ class followup_email_persistent extends persistent
                 JOIN {followup_email} fe
                 ON fe.id = fes.followup_email_id
                 WHERE fe.id = {$followupid}";
+        if (!is_null($eventtype)) {
+            $sql .= " AND fe.event = {$eventtype}";
+        }
         $records = $DB->get_records_sql($sql);
         foreach ($records as $record) {
-            $statusrecords[] = new followup_email_status_persistent(0, $record);
+            $statusrecords[] = new persistent_status(0, $record);
         }
         return $statusrecords;
     }
@@ -138,115 +148,6 @@ class followup_email_persistent extends persistent
             }
         }
         return false;
-    }
-
-    /**
-     * @param int $userid
-     * @return DateTime|int
-     * @throws coding_exception
-     * @throws dml_exception
-     * @throws Exception
-     */
-    public function get_event_time(int $userid)
-    {
-        global $DB;
-        $eventtime = 0;
-        $courseid = $this->get('courseid');
-        $cm = new stdClass();
-        $cm->id = $this->get('cmid');
-        switch ($this->get('event')) {
-            // $eventtime may be 0
-            case FOLLOWUP_EMAIL_ACTIVITY_COMPLETION:
-                $course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
-                $completioninfo = new completion_info($course);
-                $completiondata = $completioninfo->get_data($cm, false, $userid);
-                if ($completiondata->timemodified > 0) {
-                    $eventtime = (new DateTime(null, core_date::get_server_timezone_object()))->setTimestamp($completiondata->timemodified);
-                }
-                break;
-            // $eventtime will never be 0
-            case FOLLOWUP_EMAIL_SINCE_ENROLLMENT:
-                // Manual and self enrolment methods populate the timestart field in the user_enrolments table,
-                // but not cohort sync, so we use timecreated
-                $sql = "SELECT ue.timecreated
-                        FROM {user_enrolments} ue
-                        JOIN {enrol} e
-                        ON ue.enrolid = e.id
-                        WHERE e.courseid = {$courseid}
-                        AND ue.userid = {$userid}";
-                $record = $DB->get_record_sql($sql, null, MUST_EXIST);
-                $eventtime = (new DateTime(null, core_date::get_server_timezone_object()))->setTimestamp($record->timecreated);
-                break;
-            // $eventtime may be 0
-            case FOLLOWUP_EMAIL_SINCE_LAST_LOGIN:
-                if ($lastaccess = $DB->get_record('user_lastaccess', array('userid' => $userid, 'courseid' => $courseid))) {
-                    if ($timestamp = $lastaccess->timeaccess) {
-                        $eventtime = (new DateTime(null, core_date::get_server_timezone_object()))->setTimestamp($timestamp);
-                    }
-                }
-                break;
-        }
-        return $eventtime;
-    }
-
-    /**
-     * @param int $userid
-     * @return int|mixed
-     * @throws coding_exception
-     * @throws dml_exception
-     */
-
-    public function get_send_time(int $userid)
-    {
-        $sendtime = 0;
-        $eventtime = $this->get_event_time($userid);
-        $interval = $this->get('followup_interval');
-        if (is_object($eventtime) && $eventtime->getTimestamp() > 0) {
-            $sendtime = $eventtime->getTimestamp() + $interval;
-        }
-        return $sendtime;
-    }
-
-    /**
-     * @param persistent $status
-     * @param bool $infoonly
-     * @return bool|string
-     * @throws coding_exception
-     * @throws dml_exception
-     * @throws Exception
-     */
-    public function is_sendable(persistent $status, bool $infoonly = false) {
-        global $DB;
-        $sendable = false;
-        $eventtime = 0;
-        if ($eventtimeobj = $this->get_event_time($status->get('userid'))) {
-            $eventtime = $eventtimeobj->getTimestamp();
-        }
-        $sendtime = $this->get_send_time($status->get('userid'));
-        $interval = $this->get('followup_interval');
-        $monitorstart = $this->get('monitorstart');
-        $monitorend = $this->get('monitorend');
-        $course = $DB->get_record('course', ['id' => $this->get('courseid')], '*', MUST_EXIST);
-        $completioninfo = new completion_info($course);
-        $completion = $completioninfo->is_course_complete($status->get('userid'));
-        $now = (new DateTime("now", core_date::get_server_timezone_object()))->getTimestamp();
-        $willnotsendinfo = '';
-        if ($eventtime) {
-            if (($monitorstart && $monitorstart < $eventtime) && ($monitorend && $monitorend < $sendtime)) {
-                $willnotsendinfo = get_string('sendaftermonitoring', 'local_followup_email');
-            } elseif ($monitorstart && $monitorstart > $eventtime)  {
-                $willnotsendinfo = get_string('eventbeforemonitoring', 'local_followup_email');
-            } elseif ($monitorend && $monitorend < $sendtime) {
-                $willnotsendinfo = get_string('sendaftermonitoring', 'local_followup_email');
-            } elseif ($completion && $this->get('event') == FOLLOWUP_EMAIL_SINCE_LAST_LOGIN) {
-                $willnotsendinfo = get_string('alreadycompletedcourse', 'local_followup_email');
-            } elseif (($eventtime + $interval) > $now) {
-                return false;
-            } else {
-                $sendable = $status->get('email_sent') ? false : true;
-            }
-        }
-        return $infoonly ? $willnotsendinfo :  $sendable;
     }
 
     /**
@@ -332,13 +233,12 @@ class followup_email_persistent extends persistent
     }
 
     /**
-     * @param $interval
+     * @param $followup_interval
      * @return bool|lang_string
-     * @throws coding_exception
      */
     protected function validate_followup_interval($followup_interval) {
         if (!$followup_interval > 0) {
-            return new lang_string('followup_intervalerror', 'local_followup_email');
+            return new lang_string('intervalerror', 'local_followup_email');
         }
         return true;
     }

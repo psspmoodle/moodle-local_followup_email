@@ -8,12 +8,12 @@
  */
 
 use core\notification;
-use local_followup_email\followup_email_form;
-use local_followup_email\followup_email_persistent;
-use local_followup_email\followup_email_status_persistent;
+use local_followup_email\form;
+use local_followup_email\persistent_base;
+use local_followup_email\persistent_status;
 
 require_once("../../config.php");
-require_once("classes/followup_email_form.php");
+require_once("classes/form.php");
 
 $courseid = required_param('courseid', PARAM_INT);
 // if followup_id is 0, we are creating a new followup email
@@ -27,7 +27,7 @@ $context = context_course::instance($course->id);
 // Instantiate persistent
 $persistent = null;
 if (!empty($followupid)) {
-    $persistent = new followup_email_persistent($followupid);
+    $persistent = new persistent_base($followupid);
 }
 
 // Page setup
@@ -45,7 +45,7 @@ $customdata = [
     'courseid' => $course->id,   // For the hidden courseid field
 ];
 
-$followup_form = new followup_email_form($PAGE->url->out(false), $customdata);
+$followup_form = new form($PAGE->url->out(false), $customdata);
 
 if ($followup_form->is_cancelled()) {
     redirect(new moodle_url('/local/followup_email/index.php', array('courseid' => $courseid)));
@@ -54,7 +54,7 @@ if ($followup_form->is_cancelled()) {
     if ($data = $followup_form->get_data()) {
         try {
             if (empty($data->id)) {     // No ID: create a new record.
-                $persistent = new followup_email_persistent(0, $data);
+                $persistent = new persistent_base(0, $data);
                 $persistent->create();
             } else {    // We have an ID: update the record.
                 // We only want to flush tracked users if the related event or group have been changed
@@ -64,8 +64,8 @@ if ($followup_form->is_cancelled()) {
                 $persistent->from_record($data);
                 $persistent->update();
                 if ($flush) {
-                    followup_email_status_persistent::remove_users($persistent);
-                    followup_email_status_persistent::add_enrolled_users($persistent);
+                    persistent_status::remove_users($persistent);
+                    persistent_status::add_enrolled_users($persistent);
                 }
             }
             notification::success(get_string('changessaved'));

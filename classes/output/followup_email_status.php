@@ -6,8 +6,8 @@ defined('MOODLE_INTERNAL') || die();
 
 use coding_exception;
 use dml_exception;
-use local_followup_email\followup_email_persistent;
-use local_followup_email\followup_email_status_persistent;
+use local_followup_email\persistent_base;
+use local_followup_email\persistent_status;
 use moodle_exception;
 use moodle_url;
 use renderable;
@@ -30,13 +30,13 @@ class followup_email_status implements renderable, templatable
 
     /**
      * followup_email_status constructor.
-     * @param followup_email_persistent $followupemail Related followup_email instance
-     * @param followup_email_status_persistent[] $records Records associated with followup_email instance
+     * @param persistent_base $followupemail Related followup_email instance
+     * @param persistent_status[] $records Records associated with followup_email instance
      * @throws coding_exception
      * @throws dml_exception
      * @throws moodle_exception
      */
-    public function __construct(followup_email_persistent $followupemail, array $records)
+    public function __construct(persistent_base $followupemail, array $records)
     {
         $this->followupemail = $followupemail;
         $this->monitorstart = $followupemail->get('monitorstart');

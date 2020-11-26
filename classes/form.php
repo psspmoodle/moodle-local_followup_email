@@ -8,10 +8,10 @@ use moodle_exception;
 
 require_once("../../lib/formslib.php");
 
-class followup_email_form extends persistent {
+class form extends persistent {
 
     /** @var string Persistent class name. */
-    protected static $persistentclass = 'local_followup_email\\followup_email_persistent';
+    protected static $persistentclass = 'local_followup_email\\persistent_base';
 
     /**
      * Define the form.

@@ -35,12 +35,12 @@ class observer
     {
         $data = $event->get_data();
         // Get all the followup instances associated with this course
-        $persistents = followup_email_persistent::get_records(['courseid' => $data['courseid']]);
+        $persistents = persistent_base::get_records(['courseid' => $data['courseid']]);
         // Add the new user to all of them that don't have a groupid
         if ($persistents) {
             foreach ($persistents as $persistent) {
                 if (!$persistent->get('groupid')) {
-                    followup_email_status_persistent::add_user($data['relateduserid'], $persistent);
+                    persistent_status::add_user($data['relateduserid'], $persistent);
                 }
             }
             $url = (new moodle_url('/local/followup_email/index.php', array('courseid' => $data['courseid'])))->out(false);
@@ -59,11 +59,11 @@ class observer
         $data = $event->get_data();
         $userid = $data['relateduserid'];
         // Get all the followup instances associated with this course
-        $persistents = followup_email_persistent::get_records(['courseid' => $data['courseid']]);
+        $persistents = persistent_base::get_records(['courseid' => $data['courseid']]);
         foreach ($persistents as $persistent) {
             // Is the user tracked in this followup email instance?
             if ($persistent->is_user_tracked($userid)) {
-                followup_email_status_persistent::remove_users($persistent, $userid);
+                persistent_status::remove_users($persistent, $userid);
                 $context = context_system::instance();
                 if (has_capability('local/followup_email:managefollowupemail', $context)) {
                     $userobj = $DB->get_record('user', ['id' => $userid], 'firstname, lastname');
@@ -85,11 +85,11 @@ class observer
         $userid = $data['relateduserid'];
         $groups = groups_get_all_groups($data['courseid']);
         // Get all the followup instances associated with this course AND this group
-        $records = followup_email_persistent::get_records(['courseid' => $courseid, 'groupid' => $groupid]);
+        $records = persistent_base::get_records(['courseid' => $courseid, 'groupid' => $groupid]);
         if ($records) {
             foreach ($records as $persistent) {
                 if (in_array($persistent->get('groupid'), array_keys($groups))) {
-                    followup_email_status_persistent::add_user($userid, $persistent);
+                    persistent_status::add_user($userid, $persistent);
                 }
             }
 
@@ -103,9 +103,9 @@ class observer
         $groupid = $data['objectid'];
         $userid = $data['relateduserid'];
         // Get all the followup instances associated with this course AND this group
-        if ($persistents = followup_email_persistent::get_records(['courseid' => $courseid, 'groupid' => $groupid])) {
+        if ($persistents = persistent_base::get_records(['courseid' => $courseid, 'groupid' => $groupid])) {
             foreach ($persistents as $persistent) {
-                followup_email_status_persistent::remove_users($persistent, $userid);
+                persistent_status::remove_users($persistent, $userid);
             }
         }
     }
@@ -115,9 +115,9 @@ class observer
         $data = $event->get_data();
         $courseid = $data['courseid'];
         $groupid = $data['objectid'];
-        if ($persistents = followup_email_persistent::get_records(['courseid' => $courseid, 'groupid' => $groupid])) {
+        if ($persistents = persistent_base::get_records(['courseid' => $courseid, 'groupid' => $groupid])) {
             foreach ($persistents as $persistent) {
-                followup_email_status_persistent::remove_users($persistent);
+                persistent_status::remove_users($persistent);
             }
         }
     }
@@ -126,7 +126,7 @@ class observer
     {
         $data = $event->get_data();
         $cmid = $data['objectid'];
-        if ($persistents = followup_email_persistent::get_records(['cmid' => $cmid])) {
+        if ($persistents = persistent_base::get_records(['cmid' => $cmid])) {
             foreach ($persistents as $persistent) {
                 $persistent->delete();
             }

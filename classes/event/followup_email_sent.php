@@ -22,7 +22,10 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace local_followup_email\event;
+
+use coding_exception;
 use core\event\base;
+use lang_string;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -40,6 +43,11 @@ class followup_email_sent extends base {
         $this->data['crud'] = 'r';
         $this->data['edulevel'] = self::LEVEL_OTHER;
     }
+
+    /**
+     * @return lang_string|string
+     * @throws coding_exception
+     */
 
     public static function get_name() {
         return get_string('followupemailsent', 'local_followup_email');

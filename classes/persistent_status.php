@@ -9,7 +9,7 @@ use core\invalid_persistent_exception;
 use core\persistent;
 use dml_exception;
 
-class followup_email_status_persistent extends persistent
+class persistent_status extends persistent
 {
 
     /** Table name for the persistent. */
@@ -53,13 +53,13 @@ class followup_email_status_persistent extends persistent
      * or just users in a group.
      *
      * @param $userids array Array of userids
-     * @param $persistent followup_email_persistent
+     * @param $persistent persistent_base
      * @return bool
      * @throws dml_exception
      * @throws coding_exception
      * @throws invalid_persistent_exception
      */
-    public static function add_users(array $userids, persistent $persistent)
+    public static function add_users(array $userids, persistent_base $persistent)
     {
         // Is the user is already tracked by this followup email instance?
         foreach ($userids as $user) {
@@ -76,11 +76,12 @@ class followup_email_status_persistent extends persistent
     /**
      * Add users enrolled in course––and possibly just members of a group——that should be sent a follow up email.
      *
-     * @param persistent
+     * @param $persistent persistent_base
      * @return bool
      * @throws dml_exception
+     * @throws coding_exception|invalid_persistent_exception
      */
-    public static function add_enrolled_users(persistent $persistent)
+    public static function add_enrolled_users(persistent_base $persistent)
     {
         //Context to pass to get_enrolled_users()
         $context = context_course::instance($persistent->get('courseid'));
@@ -96,11 +97,12 @@ class followup_email_status_persistent extends persistent
     /**
      * Remove user(s) from a follow up email instance.
      *
-     * @param persistent
+     * @param $persistent persistent_base
+     * @param null $userid
      * @return bool
-     * @throws dml_exception
+     * @throws coding_exception
      */
-    public static function remove_users(persistent $persistent, $userid = null)
+    public static function remove_users(persistent_base $persistent, $userid = null)
     {
         $status = new static();
         $filter = ['followup_email_id' => $persistent->get('id')];
