@@ -2,7 +2,7 @@
 
 $tasks = [
     [
-        'classname' => 'local_followup_email\task\send_followup_email_activity',
+        'classname' => 'local_followup_email\task\send_activity_completion',
         'blocking' => 0,
         'minute' => '*',
         'hour' => '*',
@@ -11,7 +11,7 @@ $tasks = [
         'dayofweek' => '*'
     ],
     [
-        'classname' => 'local_followup_email\task\send_followup_email_enrolment',
+        'classname' => 'local_followup_email\task\send_enrolment',
         'blocking' => 0,
         'minute' => 1,
         'hour' => 1,

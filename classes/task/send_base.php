@@ -1,6 +1,8 @@
 <?php
 
+
 namespace local_followup_email\task;
+
 
 use coding_exception;
 use context_course;
@@ -8,13 +10,22 @@ use core\persistent;
 use core\task\scheduled_task;
 use core_user;
 use DateTime;
+use dml_exception;
 use local_followup_email\event\followup_email_sent;
+use local_followup_email\event_activity_completion;
 use local_followup_email\persistent_base;
 use moodle_exception;
 use stdClass;
 
-class send_followup_email extends scheduled_task
+/**
+ * Class send_base
+ * @package local_followup_email\task
+ */
+class send_base extends scheduled_task
 {
+
+    private $eventtype;
+
     /**
      * Return the task's name as shown in admin screens.
      *
@@ -27,14 +38,33 @@ class send_followup_email extends scheduled_task
     }
 
     /**
-     *
+     * @throws dml_exception
+     * @throws coding_exception
+     * @throws moodle_exception
      */
-    public function execute()
-    {
-
+    public function execute() {
+        $persistents = (new persistent_base())::get_records(['event' => static::EVENT_TYPE]);
+        foreach ($persistents as $persistent) {
+            if ($this->outside_monitoring_time($persistent)) {
+                continue;
+            }
+            $statuses = $persistent->get_tracked_users(static::EVENT_TYPE);
+            foreach ($statuses as $status) {
+                $event = new event_activity_completion($status, $persistent);
+                if ($event->is_sendable()) {
+                    $user = core_user::get_user($status->get('userid'));
+                    $this->send_followup_email($persistent, $user);
+                    $this->log_followup_email($persistent, $user, $persistent->get('courseid'), 'event_activitycompletion');
+                    $status->set('email_sent', 1);
+                    $status->update();
+                }
+            }
+        }
     }
 
     /**
+     * Invoke native Moodle function to send the email
+     *
      * @param persistent_base $persistent
      * @param $user
      * @return bool
@@ -53,6 +83,8 @@ class send_followup_email extends scheduled_task
     }
 
     /**
+     * Is there a monitor end time set, and is it AFTER the current time?
+     *
      * @param persistent $persistent
      * @return bool
      * @throws coding_exception
@@ -64,6 +96,8 @@ class send_followup_email extends scheduled_task
     }
 
     /**
+     * Log a followup email sent event
+     *
      * @param persistent $persistent
      * @param stdClass $user
      * @param int $courseid

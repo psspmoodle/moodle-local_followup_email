@@ -17,10 +17,9 @@ use moodle_exception;
 use moodle_url;
 
 /**
- * Class observer
+ * Class observer: responds to various events
  * @package local_followup_email
  */
-
 class observer
 {
     /**
