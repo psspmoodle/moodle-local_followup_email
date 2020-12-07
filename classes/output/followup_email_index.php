@@ -6,7 +6,6 @@ defined('MOODLE_INTERNAL') || die();
 
 use coding_exception;
 use core\persistent;
-use DateTime;
 use moodle_exception;
 use moodle_url;
 use renderable;
@@ -28,10 +27,10 @@ class followup_email_index implements renderable, templatable
      * followup_email_index constructor.
      * @param int $courseid
      * @param persistent[] $records
-     * @param int $deleteid
+     * @param int|null $deleteid
      * @throws moodle_exception
      */
-    public function __construct($courseid, array $records, $deleteid)
+    public function __construct(int $courseid, array $records, $deleteid = null)
     {
         $this->courseid = $courseid;
         $this->records = $this->process_records($records);
@@ -44,7 +43,7 @@ class followup_email_index implements renderable, templatable
      * @throws coding_exception
      * @throws moodle_exception
      */
-    public function process_records($records) {
+    public function process_records(array $records) {
         if (!$records) {
             return null;
         }

@@ -64,9 +64,9 @@ class followup_email_status implements renderable, templatable
         $rows = array();
         foreach ($records as $record) {
             $userid = $record->get('userid');
-            $stat = $this->followupemail->format_email_status($userid, $record);
+            $stat = $this->format_email_status($userid, $record);
             $row = array(
-                'fullname' => $this->get_fullname($userid),
+                'fullname' => $this->get_user_fullname($userid),
                 'eventtime' => $stat['eventtime'],
                 'sendtime' => $stat['sendtime'],
                 'logurl' => $stat['logurl'] ?? null,
@@ -173,7 +173,7 @@ class followup_email_status implements renderable, templatable
      * @return string
      * @throws dml_exception
      */
-    public function get_fullname($userid)
+    public function get_user_fullname($userid)
     {
         global $DB;
         $sql = "SELECT CONCAT(u.lastname, ', ', u.firstname) as fullname

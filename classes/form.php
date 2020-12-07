@@ -13,6 +13,13 @@ class form extends persistent {
     /** @var string Persistent class name. */
     protected static $persistentclass = 'local_followup_email\\persistent_base';
 
+    /** @var array Fields to remove when getting the final data.
+     * Note: not adding 'userid' results in the error "Unexpected property 'userid' requested."
+     * This is because it doesn't exist as a field in the persistent.
+     */
+
+    protected static $fieldstoremove = array('submitbutton', 'userid');
+
     /**
      * Define the form.
      */
@@ -23,6 +30,8 @@ class form extends persistent {
 
         // User ID
         $mform->addElement('hidden', 'userid');
+        // Not adding this results in a debugging message
+        $mform->setType('userid', PARAM_INT);
         $mform->setConstant('userid', $this->_customdata['userid']);
         // Course ID
         $mform->addElement('hidden', 'courseid');

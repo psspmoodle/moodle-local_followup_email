@@ -53,7 +53,7 @@ $string['monitorstart_help'] = <<<EOD
     <li><b>Since last course login:</b> time user last logged into course</li>
 </ul>
 EOD;
-$string['monitorend_help'] = 'Followup email monitoring goes on indefinitely. Specifying a custom end time will disable monitoring.';
+$string['monitorend_help'] = 'Followup email monitoring goes on indefinitely. Specifying a custom end time will disable monitoring after that time.';
 $string['eventbeforemonitoring'] = 'Event occurs before monitor start. Email will not be sent.';
 $string['sendaftermonitoring'] = 'Send time occurs after monitor end. Email will not be sent.';
 $string['noeventrecorded'] = 'No event recorded';
@@ -62,4 +62,5 @@ $string['sending'] = 'Sending ';
 $string['alreadycompletedcourse'] = 'User has already completed course.';
 $string['followup_email:managefollowupemail'] = 'Manage Followup Emails';
 $string['sendactivitycompletion'] = 'Send activity completion followup email';
-$string['sendenrolment'] = 'Send since enrolment followup email';
+$string['sendenrolment'] = 'Send enrolment followup email';
+$string['sendsincelastcourselogin'] = 'Send since last course login followup email';

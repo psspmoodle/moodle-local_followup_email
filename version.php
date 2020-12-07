@@ -25,6 +25,6 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'local_followup_email'; // Full name of the plugin (used for diagnostics).
-$plugin->version  = 2020112601;    // The current module version (Date: YYYYMMDDXX).
+$plugin->version  = 2020120700;    // The current module version (Date: YYYYMMDDXX).
 $plugin->requires = 2019051100;    // Requires this Moodle version.
 $plugin->release = '3.7.0';

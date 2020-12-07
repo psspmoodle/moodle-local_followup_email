@@ -69,9 +69,6 @@ class persistent_base extends persistent
             'groupid' => array(
                 'type' => PARAM_INT,
                 'default' => 0
-            ),
-            'userid' => array(
-                'type' => PARAM_INT,
             )
         );
     }
@@ -107,12 +104,11 @@ class persistent_base extends persistent
     /**
      * Get the records of all users associated with a followup email record of a particular event type
      *
-     * @param $eventtype null|int Specify for event-related subset of tracked users
      * @return persistent_status[] Array of records
      * @throws coding_exception
      * @throws dml_exception
      */
-    public function get_tracked_users($eventtype = null)
+    public function get_tracked_users()
     {
         global $DB;
         $statusrecords = [];
@@ -122,9 +118,6 @@ class persistent_base extends persistent
                 JOIN {followup_email} fe
                 ON fe.id = fes.followup_email_id
                 WHERE fe.id = {$followupid}";
-        if (!is_null($eventtype)) {
-            $sql .= " AND fe.event = {$eventtype}";
-        }
         $records = $DB->get_records_sql($sql);
         foreach ($records as $record) {
             $statusrecords[] = new persistent_status(0, $record);

@@ -29,6 +29,10 @@ class persistent_status extends persistent
             'followup_email_id' => array(
                 'type' => PARAM_INT
             ),
+            'timetosend' => array(
+                'type' => PARAM_INT,
+                'default' => 0
+            ),
             'email_sent' => array(
                 'type' => PARAM_BOOL,
                 'default' => 0
@@ -39,13 +43,14 @@ class persistent_status extends persistent
     /**
      * @param $userid
      * @param $persistent
+     * @return array
      * @throws invalid_persistent_exception
      * @throws coding_exception
      * @throws dml_exception
      */
     public static function add_user($userid, $persistent) {
         $user = [['id' => $userid]];
-        static::add_users($user, $persistent);
+        return static::add_users($user, $persistent);
     }
 
     /**
@@ -54,23 +59,24 @@ class persistent_status extends persistent
      *
      * @param $userids array Array of userids
      * @param $persistent persistent_base
-     * @return bool
+     * @return array
      * @throws dml_exception
      * @throws coding_exception
      * @throws invalid_persistent_exception
      */
     public static function add_users(array $userids, persistent_base $persistent)
     {
+        $addedusers = [];
         // Is the user is already tracked by this followup email instance?
         foreach ($userids as $user) {
             if (!$persistent->is_user_tracked($user['id'])) {
                 $status = new static();
                 $status->set('userid', $user['id']);
                 $status->set('followup_email_id', $persistent->get('id'));
-                $status->create();
+                $addedusers[] = $status->create();
             }
         }
-        return true;
+        return $addedusers;
     }
 
     /**

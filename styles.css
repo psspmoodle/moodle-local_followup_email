@@ -1,4 +1,4 @@
-select#id_followup_interval_timeunit [value="60"],
-select#id_followup_interval_timeunit [value="1"] {
-    display: none;
-}
+/*select#id_followup_interval_timeunit [value="60"],*/
+/*select#id_followup_interval_timeunit [value="1"] {*/
+/*    display: none;*/
+/*}*/

@@ -23,6 +23,8 @@ $PAGE->set_url('/local/followup_email/edit.php', array('courseid' => $courseid, 
 $course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
 require_login($course);
 $context = context_course::instance($course->id);
+require_capability('local/followup_email:managefollowupemail', $context);
+
 
 // Instantiate persistent
 $persistent = null;
