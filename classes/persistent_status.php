@@ -8,6 +8,7 @@ use context_course;
 use core\invalid_persistent_exception;
 use core\persistent;
 use dml_exception;
+use moodle_exception;
 
 class persistent_status extends persistent
 {
@@ -29,6 +30,10 @@ class persistent_status extends persistent
             'followup_email_id' => array(
                 'type' => PARAM_INT
             ),
+            'eventtime' => array(
+                'type' => PARAM_INT,
+                'default' => 0
+            ),
             'timetosend' => array(
                 'type' => PARAM_INT,
                 'default' => 0
@@ -41,16 +46,24 @@ class persistent_status extends persistent
     }
 
     /**
-     * @param $userid
-     * @param $persistent
-     * @return array
-     * @throws invalid_persistent_exception
-     * @throws coding_exception
+     * Add users enroled in course––and possibly just members of a group——that should be sent a follow up email.
+     *
+     * @param $persistent persistent_base
+     * @return void
      * @throws dml_exception
+     * @throws coding_exception|invalid_persistent_exception
+     * @throws moodle_exception
      */
-    public static function add_user($userid, $persistent) {
-        $user = [['id' => $userid]];
-        return static::add_users($user, $persistent);
+    public static function add_enrolled_users(persistent_base $persistent)
+    {
+        $context = context_course::instance($persistent->get('courseid'));
+        // We need to limit the users by group if there is one supplied, and we only need the user ids
+        $users = get_enrolled_users($context, null, $groupid = $persistent->get('groupid'), 'u.id');
+        $userstoadd = [];
+        foreach($users as $user) {
+            $userstoadd[] = (array) $user;
+        }
+        static::add_users($userstoadd, $persistent);
     }
 
     /**
@@ -58,57 +71,35 @@ class persistent_status extends persistent
      * or just users in a group.
      *
      * @param $userids array Array of userids
-     * @param $persistent persistent_base
-     * @return array
-     * @throws dml_exception
+     * @param persistent_base $base
+     * @return void
      * @throws coding_exception
+     * @throws dml_exception
      * @throws invalid_persistent_exception
+     * @throws moodle_exception
      */
-    public static function add_users(array $userids, persistent_base $persistent)
+    public static function add_users(array $userids, persistent_base $base)
     {
-        $addedusers = [];
-        // Is the user is already tracked by this followup email instance?
         foreach ($userids as $user) {
-            if (!$persistent->is_user_tracked($user['id'])) {
+            // Is the user is already tracked?
+            if (!$base->is_user_tracked($user['id'])) {
                 $status = new static();
                 $status->set('userid', $user['id']);
-                $status->set('followup_email_id', $persistent->get('id'));
-                $addedusers[] = $status->create();
+                $status->set('followup_email_id', $base->get('id'));
+                event_factory::create($base, $status->create());
             }
         }
-        return $addedusers;
-    }
-
-    /**
-     * Add users enrolled in course––and possibly just members of a group——that should be sent a follow up email.
-     *
-     * @param $persistent persistent_base
-     * @return bool
-     * @throws dml_exception
-     * @throws coding_exception|invalid_persistent_exception
-     */
-    public static function add_enrolled_users(persistent_base $persistent)
-    {
-        //Context to pass to get_enrolled_users()
-        $context = context_course::instance($persistent->get('courseid'));
-        // We need to limit the users by group if there is one supplied, and we only need the user ids
-        $users = get_enrolled_users($context, null, $groupid = $persistent->get('groupid'), 'u.id');
-        $usersarray = [];
-        foreach($users as $user) {
-            $usersarray[] = (array) $user;
-        }
-        return static::add_users($usersarray, $persistent);
     }
 
     /**
      * Remove user(s) from a follow up email instance.
      *
-     * @param $persistent persistent_base
+     * @param $persistent persistent
      * @param null $userid
-     * @return bool
+     * @return void
      * @throws coding_exception
      */
-    public static function remove_users(persistent_base $persistent, $userid = null)
+    public static function remove_users(persistent $persistent, $userid = null)
     {
         $status = new static();
         $filter = ['followup_email_id' => $persistent->get('id')];
@@ -119,9 +110,7 @@ class persistent_status extends persistent
             foreach ($records as $record) {
                 $record->delete();
             }
-            return true;
         }
-        return false;
     }
 
 }

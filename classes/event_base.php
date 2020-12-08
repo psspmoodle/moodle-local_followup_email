@@ -7,6 +7,7 @@ namespace local_followup_email;
 use coding_exception;
 use core_date;
 use DateTime;
+use Exception;
 
 /**
  * Class event_base
@@ -16,14 +17,14 @@ abstract class event_base
 {
 
     /**
+     * @var $base persistent_base Database record in persistent form
+     */
+    public $base;
+
+    /**
      * @var $status persistent_status Database record in persistent form
      */
     public $status;
-
-    /**
-     * @var $status persistent_base Database record in persistent form
-     */
-    public $persistent;
 
     /**
      * @var $eventtime int|DateTime The event time that starts the followup interval
@@ -40,24 +41,7 @@ abstract class event_base
      *
      * @return int
      */
-    abstract protected function get_event_time();
-
-    /**
-     * Determines when the email should be sent.
-     *
-     * @return int
-     * @throws coding_exception
-     */
-    protected function get_send_time(): int
-    {
-        $sendtime = 0;
-        $eventtime = $this->eventtime;
-        $interval = $this->persistent->get('followup_interval');
-        if (is_object($eventtime) && $eventtime->getTimestamp() > 0) {
-            $sendtime = $eventtime->getTimestamp() + $interval;
-        }
-        return $sendtime;
-    }
+    abstract protected function set_event_time();
 
     /**
      * Generic check to see if an email should be sent, and if not, updates the instance's willnotsendinfo property
@@ -65,8 +49,8 @@ abstract class event_base
      *
      * @return bool
      * @throws coding_exception
+     * @throws Exception
      */
-
     public function is_sendable()
     {
         if ($this->eventtime) {
@@ -75,12 +59,13 @@ abstract class event_base
             return false;
         }
         $sendable = false;
-        $sendtime = $this->get_send_time();
-        $interval = $this->persistent->get('followup_interval');
-        $monitorstart = $this->persistent->get('monitorstart');
-        $monitorend = $this->persistent->get('monitorend');
-        $now = (new DateTime("now", core_date::get_server_timezone_object()))->getTimestamp();
-
+        $sendtime = $this->status->get('timetosend');
+        $interval = $this->base->get('followup_interval');
+        $monitorstart = $this->base->get('monitorstart');
+        $monitorend = $this->base->get('monitorend');
+        $datetime = new DateTime("now", core_date::get_server_timezone_object());
+        $now = $datetime->getTimestamp();
+        $readable = date("F jS, Y", strtotime($now));
         if (($monitorstart && $monitorstart < $eventtime) && ($monitorend && $monitorend < $sendtime)) {
             $this->willnotsendinfo = get_string('sendaftermonitoring', 'local_followup_email');
         } elseif ($monitorstart && $monitorstart > $eventtime)  {

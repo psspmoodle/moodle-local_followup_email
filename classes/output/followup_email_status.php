@@ -158,10 +158,10 @@ class followup_email_status implements renderable, templatable
             case FOLLOWUP_EMAIL_ACTIVITY_COMPLETION:
                 $label = 'event_activitycompletion';
                 break;
-            case FOLLOWUP_EMAIL_SINCE_ENROLLMENT:
+            case FOLLOWUP_EMAIL_ENROLMENT:
                 $label = 'event_sinceenrolment';
                 break;
-            case FOLLOWUP_EMAIL_SINCE_LAST_LOGIN:
+            case FOLLOWUP_EMAIL_SINCE_LAST_COURSE_LOGIN:
                 $label = 'event_sincelastlogin';
                 break;
         }

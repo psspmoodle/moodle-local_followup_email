@@ -45,13 +45,7 @@ $string['monitorenderror'] = 'End time cannot be in the past.';
 $string['required'] = 'This field is required.';
 $string['intervalerror'] = 'Interval cannot be zero.';
 $string['monitorstart_help'] = <<<EOD
-<span>A custom start time means that the plugin ignores default event start times and starts monitoring from the specified time. For example, if, in a running course, you create a welcome followup email that monitors the Enrolment event and set an interval of 1 day, users who enroled in the course prior to that time will not receive that (confusing) email. </span>
-<span>Default start times are:</span>
-<ul>
-    <li><b>Activity completion:</b> time user completes activity</li>
-    <li><b>Enrolment:</b> time user enroled in course</li>
-    <li><b>Since last course login:</b> time user last logged into course</li>
-</ul>
+<span>A custom start time means that emails are only sent after the specified time instead of the default course start date. For example, if a course has already been running for some time and you create a followup email that monitors the Enrolment event with an interval of 1 minute, you probably want to set a custom monitor start time. Otherwise, users who enroled in the course prior to that time will receive a (confusing) email the first time the followup email task scheduled task runs.</span>
 EOD;
 $string['monitorend_help'] = 'Followup email monitoring goes on indefinitely. Specifying a custom end time will disable monitoring after that time.';
 $string['eventbeforemonitoring'] = 'Event occurs before monitor start. Email will not be sent.';

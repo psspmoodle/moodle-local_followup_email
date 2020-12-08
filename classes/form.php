@@ -138,8 +138,8 @@ class form extends persistent {
     private function get_events() {
         return [
             FOLLOWUP_EMAIL_ACTIVITY_COMPLETION => get_string('activitycompletion', 'local_followup_email'),
-            FOLLOWUP_EMAIL_SINCE_ENROLLMENT => get_string('enrolment', 'local_followup_email'),
-            FOLLOWUP_EMAIL_SINCE_LAST_LOGIN => get_string('sincelastcourselogin', 'local_followup_email')
+            FOLLOWUP_EMAIL_ENROLMENT => get_string('enrolment', 'local_followup_email'),
+            FOLLOWUP_EMAIL_SINCE_LAST_COURSE_LOGIN => get_string('sincelastcourselogin', 'local_followup_email')
         ];
     }
 }

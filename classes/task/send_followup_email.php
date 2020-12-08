@@ -6,7 +6,6 @@ namespace local_followup_email\task;
 
 use coding_exception;
 use context_course;
-use core\event\course_module_completion_updated;
 use core\persistent;
 use core\task\scheduled_task;
 use core_user;
@@ -65,7 +64,7 @@ class send_followup_email extends scheduled_task
             $base_data = persistent_base::extract_record($row, 'fe_');
             $persistent = new persistent_base(0, $base_data);
             // Bail if monitoring applies
-            if ($this->outside_monitoring_time($persistent)) {
+            if ($persistent->outside_monitoring_time()) {
                 continue;
             }
             $status_data = persistent_status::extract_record($row, 'fes_');
@@ -93,7 +92,7 @@ class send_followup_email extends scheduled_task
      * @throws coding_exception
      * @throws moodle_exception
      */
-    protected function send_followup_email(persistent $persistent, $user)
+    protected function send_followup_email(persistent $persistent, stdClass $user)
     {
         $contact = core_user::get_noreply_user();
         $subject = $persistent->get('email_subject');
@@ -102,19 +101,6 @@ class send_followup_email extends scheduled_task
         $messagetext = html_to_text($messagehtml);
         email_to_user($user, $contact, $subject, $messagetext, $messagehtml);
         return true;
-    }
-
-    /**
-     * Is there a monitor end time set, and is it AFTER the current time?
-     *
-     * @param persistent $persistent
-     * @return bool
-     * @throws coding_exception
-     */
-
-    protected function outside_monitoring_time(persistent $persistent): bool
-    {
-        return $persistent->get('monitorend') && $persistent->get('monitorend') < new DateTime('now');
     }
 
     /**

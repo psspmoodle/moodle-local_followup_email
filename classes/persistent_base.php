@@ -17,8 +17,8 @@ use moodle_url;
 require_once($CFG->libdir.'/completionlib.php');
 
 define('FOLLOWUP_EMAIL_ACTIVITY_COMPLETION', 0);
-define('FOLLOWUP_EMAIL_SINCE_ENROLLMENT', 1);
-define('FOLLOWUP_EMAIL_SINCE_LAST_LOGIN', 2);
+define('FOLLOWUP_EMAIL_ENROLMENT', 1);
+define('FOLLOWUP_EMAIL_SINCE_LAST_COURSE_LOGIN', 2);
 
 class persistent_base extends persistent
 {
@@ -90,7 +90,9 @@ class persistent_base extends persistent
     }
 
     /**
-     * @return bool|void
+     * This is called after the form is saved and a new record is created in the database.
+     *
+     * @return array
      * @throws invalid_persistent_exception
      * @throws coding_exception
      * @throws dml_exception
@@ -142,6 +144,17 @@ class persistent_base extends persistent
             }
         }
         return false;
+    }
+
+    /**
+     * Is there a monitor end time set, and is it AFTER the current time?
+     *
+     * @return bool
+     * @throws coding_exception
+     */
+    public function outside_monitoring_time(): bool
+    {
+        return $this->get('monitorend') && $this->get('monitorend') < new DateTime('now');
     }
 
    /**

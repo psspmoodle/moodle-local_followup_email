@@ -38,27 +38,24 @@ class observer
         $data = $event->get_data();
         // Get all the followup instances associated with this course
         $persistents = persistent_base::get_records(['courseid' => $data['courseid']]);
-        if ($persistents) {
-            foreach ($persistents as $persistent) {
-                // Add the new user to all of them that don't have a groupid
-                if (!$persistent->get('groupid')) {
-                    $addedusers = persistent_status::add_user($data['relateduserid'], $persistent);
-                }
-                // Check if there is an enrolment event followup email to update with a new 'timetosend' value
-                if (isset($addedusers) && $persistent->get('event') == 1) {
-                    $timetosend = $data['timecreated'] + $persistent->get('followup_interval');
-                    $addeduser = $addedusers[0];
-                    $addeduser->set('timetosend', $timetosend);
-                    $addeduser->update();
-                }
+        foreach ($persistents as $persistent) {
+            // Add the new user to all of them that don't have a groupid
+            if (!$persistent->get('groupid')) {
+                [$addeduser] = persistent_status::add_users(array($data['relateduserid']), $persistent);
             }
-            // Notify the admin about users being added to followup emails
-            $url = (new moodle_url('/local/followup_email/index.php', array('courseid' => $data['courseid'])))->out(false);
-            $context = context_system::instance();
-            if (has_capability('local/followup_email:managefollowupemail', $context)) {
-                $notification = get_string('userenrolmentcreated', 'local_followup_email', $url);
-                notification::warning($notification);
+            // Check if there is an enrolment event followup email to update with a new 'timetosend' value
+            if (isset($addeduser) && $persistent->get('event') == 1) {
+                $timetosend = $data['timecreated'] + $persistent->get('followup_interval');
+                $addeduser->set('timetosend', $timetosend);
+                $addeduser->update();
             }
+        }
+        // Notify the admin about users being added to followup emails
+        $url = (new moodle_url('/local/followup_email/index.php', array('courseid' => $data['courseid'])))->out(false);
+        $context = context_system::instance();
+        if (has_capability('local/followup_email:managefollowupemail', $context)) {
+            $notification = get_string('userenrolmentcreated', 'local_followup_email', $url);
+            notification::warning($notification);
         }
     }
 
@@ -114,11 +111,9 @@ class observer
         $groups = groups_get_all_groups($data['courseid']);
         // Get all the followup instances associated with this course AND this group
         $records = persistent_base::get_records(['courseid' => $courseid, 'groupid' => $groupid]);
-        if ($records) {
-            foreach ($records as $persistent) {
-                if (in_array($persistent->get('groupid'), array_keys($groups))) {
-                    persistent_status::add_user($userid, $persistent);
-                }
+        foreach ($records as $persistent) {
+            if (in_array($persistent->get('groupid'), array_keys($groups))) {
+                persistent_status::add_users([$userid], $persistent);
             }
         }
     }
