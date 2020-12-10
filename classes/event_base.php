@@ -27,25 +27,41 @@ abstract class event_base
     public $status;
 
     /**
-     * @var $eventtime int|DateTime The event time that starts the followup interval
+     * @var $sendinfo string Why a followup email will not be sent
      */
-    public $eventtime;
-
-    /**
-     * @var $willnotsendinfo string Why a followup email will not be sent
-     */
-    public $willnotsendinfo;
+    public $sendinfo;
 
     /**
      * Event time among child classes differs.
      *
-     * @return int
+     * @return void
      */
-    abstract protected function set_event_time();
+    abstract protected function update_times();
+
+    /**
+     * @returns void
+     * @throws coding_exception
+     */
+    protected function update_timetosend()
+    {
+        $timetosend = $this->is_sendable() ? $this->calculate_timetosend() : 0;
+        $this->status->set('timetosend', $timetosend);
+    }
+
+    /**
+     * Default return type is float: need to cast to int or else it will fail persistent validation
+     *
+     * @return int
+     * @throws coding_exception
+     */
+    protected function calculate_timetosend()
+    {
+        return (int) $this->status->get('eventtime') + $this->base->get('followup_interval');
+    }
 
     /**
      * Generic check to see if an email should be sent, and if not, updates the instance's willnotsendinfo property
-     * with a reason why. This method is overridden in some child classes.
+     * with a reason why.
      *
      * @return bool
      * @throws coding_exception
@@ -53,30 +69,34 @@ abstract class event_base
      */
     public function is_sendable()
     {
-        if ($this->eventtime) {
-            $eventtime = $this->eventtime->getTimestamp();
-        } else {
-            return false;
-        }
         $sendable = false;
-        $sendtime = $this->status->get('timetosend');
-        $interval = $this->base->get('followup_interval');
+        if ($this->status->get('email_sent')) {
+           $this->sendinfo = 'followupemailsent';
+           return $sendable;
+        }
+        if ($this->status->get('eventtime')) {
+            $eventtime = $this->status->get('eventtime');
+        } else {
+            $this->sendinfo = 'noeventrecorded';
+            return $sendable;
+        }
+        $sendtime = $this->calculate_timetosend();
         $monitorstart = $this->base->get('monitorstart');
         $monitorend = $this->base->get('monitorend');
-        $datetime = new DateTime("now", core_date::get_server_timezone_object());
-        $now = $datetime->getTimestamp();
-        $readable = date("F jS, Y", strtotime($now));
+        $now = (new DateTime("now", core_date::get_server_timezone_object()))->getTimestamp();
         if (($monitorstart && $monitorstart < $eventtime) && ($monitorend && $monitorend < $sendtime)) {
-            $this->willnotsendinfo = get_string('sendaftermonitoring', 'local_followup_email');
+            $this->sendinfo = 'sendaftermonitoring';
         } elseif ($monitorstart && $monitorstart > $eventtime)  {
-            $this->willnotsendinfo = get_string('eventbeforemonitoring', 'local_followup_email');
+            $this->sendinfo = 'eventbeforemonitoring';
         } elseif ($monitorend && $monitorend < $sendtime) {
-            $this->willnotsendinfo = get_string('sendaftermonitoring', 'local_followup_email');
-        } elseif (($eventtime + $interval) > $now) {
-            return false;
-        } else {
-            $sendable = $this->status->get('email_sent') ? false : true;
+            $this->sendinfo = 'sendaftermonitoring';
         }
+
+        else {
+            $this->sendinfo = 'sending';
+            $sendable = true;
+        }
+
         return $sendable;
     }
 

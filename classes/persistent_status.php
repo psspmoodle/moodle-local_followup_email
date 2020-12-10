@@ -59,16 +59,17 @@ class persistent_status extends persistent
         $context = context_course::instance($persistent->get('courseid'));
         // We need to limit the users by group if there is one supplied, and we only need the user ids
         $users = get_enrolled_users($context, null, $groupid = $persistent->get('groupid'), 'u.id');
-        $userstoadd = [];
-        foreach($users as $user) {
-            $userstoadd[] = (array) $user;
-        }
-        static::add_users($userstoadd, $persistent);
+        static::add_users(array_keys($users), $persistent);
     }
 
     /**
      * Add users that should be sent a follow up email. This could be every user in the course (no groupid specified)
      * or just users in a group.
+     *
+     * NOTE: A student enroled via multiple enrolment methods may be tracked using only one method!
+     * For example: student A is enroled via a cohort sync AND a manual enrolment (for whatever reason…error?) and then
+     * unenroled from the manual method. This could remove student A from the list of tracked users, even though
+     * student A is still enroled in the course via cohort sync.
      *
      * @param $userids array Array of userids
      * @param persistent_base $base
@@ -82,11 +83,13 @@ class persistent_status extends persistent
     {
         foreach ($userids as $user) {
             // Is the user is already tracked?
-            if (!$base->is_user_tracked($user['id'])) {
+            if (!$base->is_user_tracked($user)) {
                 $status = new static();
-                $status->set('userid', $user['id']);
+                $status->set('userid', $user);
                 $status->set('followup_email_id', $base->get('id'));
-                event_factory::create($base, $status->create());
+                // Send to event_factory for further processing
+                $eventobj = event_factory::create($base, $status->create());
+                $eventobj->update_times();
             }
         }
     }
@@ -112,5 +115,4 @@ class persistent_status extends persistent
             }
         }
     }
-
 }

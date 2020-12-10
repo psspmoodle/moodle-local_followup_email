@@ -37,20 +37,15 @@ class observer
     {
         $data = $event->get_data();
         // Get all the followup instances associated with this course
-        $persistents = persistent_base::get_records(['courseid' => $data['courseid']]);
-        foreach ($persistents as $persistent) {
+        $bases = persistent_base::get_records(['courseid' => $data['courseid']]);
+        foreach ($bases as $base) {
             // Add the new user to all of them that don't have a groupid
-            if (!$persistent->get('groupid')) {
-                [$addeduser] = persistent_status::add_users(array($data['relateduserid']), $persistent);
-            }
-            // Check if there is an enrolment event followup email to update with a new 'timetosend' value
-            if (isset($addeduser) && $persistent->get('event') == 1) {
-                $timetosend = $data['timecreated'] + $persistent->get('followup_interval');
-                $addeduser->set('timetosend', $timetosend);
-                $addeduser->update();
+            if (!$base->get('groupid')) {
+                persistent_status::add_users([$data['relateduserid']], $base);
             }
         }
         // Notify the admin about users being added to followup emails
+        // @TODO: This should only display once, not once for each user
         $url = (new moodle_url('/local/followup_email/index.php', array('courseid' => $data['courseid'])))->out(false);
         $context = context_system::instance();
         if (has_capability('local/followup_email:managefollowupemail', $context)) {
@@ -101,6 +96,7 @@ class observer
      * @throws coding_exception
      * @throws dml_exception
      * @throws invalid_persistent_exception
+     * @throws moodle_exception
      */
     public static function group_member_added(group_member_added $event)
     {
@@ -188,7 +184,7 @@ class observer
      * @returns void
      * @throws coding_exception
      * @throws dml_exception
-     * @throws invalid_persistent_exception
+     * @throws moodle_exception
      */
     public static function course_module_completion_updated(course_module_completion_updated $event)
     {
@@ -196,22 +192,20 @@ class observer
         $data = $event->get_data();
         $base_fields = persistent_base::get_sql_fields('fe', 'fe_');
         $status_fields = persistent_status::get_sql_fields('fes', 'fes_');
+        // Find all fe instances with this course module id, this user id, and of the activity completion event type
         $sql = "SELECT $base_fields, $status_fields
                 FROM {" . persistent_base::TABLE . "} fe
                 JOIN {" . persistent_status::TABLE . "} fes 
                 ON fes.followup_email_id = fe.id
                 WHERE fe.cmid = {$data['contextinstanceid']}
                 AND fes.userid = {$data['relateduserid']}
-                AND fe.event = 0";
+                AND fe.event = " . FOLLOWUP_EMAIL_ACTIVITY_COMPLETION;
         $rows = $DB->get_records_sql($sql, []);
         foreach ($rows as $row) {
-            $base_data = persistent_base::extract_record($row, 'fe_');
-            $status_data = persistent_status::extract_record($row, 'fes_');
-            if (!$status_data->email_sent || $status_data->timetosend) {
-                $status_data->timetosend = $data['timecreated'] + $base_data->followup_interval;
-                $status = new persistent_status(0, $status_data);
-                $status->update();
-            }
+            $base = new persistent_base(0, persistent_base::extract_record($row, 'fe_'));
+            $status = new persistent_status(0, persistent_status::extract_record($row, 'fes_'));
+            $eventobj = event_factory::create($base, $status);
+            $eventobj->update_times($data['timecreated']);
         }
     }
 }

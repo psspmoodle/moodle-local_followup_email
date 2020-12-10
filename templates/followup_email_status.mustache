@@ -23,9 +23,9 @@
                 <td>{{fullname}}</td>
                 <td>{{eventtime}}</td>
                 <td class="{{cellcolor}}">{{sendtime}}
-                    {{#willnotsendinfo}}
-                        <a tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-content="{{willnotsendinfo}}"><i class="far fa-info-circle {{iconcolor}}"></i></a>
-                {{/willnotsendinfo}}
+                    {{#sendinfo}}
+                        <a tabindex="0" role="button" data-toggle="popover" data-trigger="focus" data-content="{{sendinfo}}"><i class="far fa-info-circle {{iconcolor}}"></i></a>
+                {{/sendinfo}}
                 </td>
             </tr>
         {{/rows}}

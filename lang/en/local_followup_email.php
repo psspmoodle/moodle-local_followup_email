@@ -47,14 +47,11 @@ $string['intervalerror'] = 'Interval cannot be zero.';
 $string['monitorstart_help'] = <<<EOD
 <span>A custom start time means that emails are only sent after the specified time instead of the default course start date. For example, if a course has already been running for some time and you create a followup email that monitors the Enrolment event with an interval of 1 minute, you probably want to set a custom monitor start time. Otherwise, users who enroled in the course prior to that time will receive a (confusing) email the first time the followup email task scheduled task runs.</span>
 EOD;
-$string['monitorend_help'] = 'Followup email monitoring goes on indefinitely. Specifying a custom end time will disable monitoring after that time.';
-$string['eventbeforemonitoring'] = 'Event occurs before monitor start. Email will not be sent.';
+$string['monitorend_help'] = 'Followup email monitoring goes on indefinitely by default. Specifying a monitoring end will prevent emails from being sent after that time.';
+$string['eventbeforemonitoring'] = 'Either a monitoring rule prohibits tracking the event, or the event occurred prior to a monitor start. Email will not be sent.';
 $string['sendaftermonitoring'] = 'Send time occurs after monitor end. Email will not be sent.';
 $string['noeventrecorded'] = 'No event recorded';
 $string['emailsentoutsidemonitoring'] = 'Note: A monitoring rule is in effect. If this rule was added after the Followup Email instance was created, this email may have been sent prior to making that change.';
 $string['sending'] = 'Sending ';
 $string['alreadycompletedcourse'] = 'User has already completed course.';
 $string['followup_email:managefollowupemail'] = 'Manage Followup Emails';
-$string['sendactivitycompletion'] = 'Send activity completion followup email';
-$string['sendenrolment'] = 'Send enrolment followup email';
-$string['sendsincelastcourselogin'] = 'Send since last course login followup email';

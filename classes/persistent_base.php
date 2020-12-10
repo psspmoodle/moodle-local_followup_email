@@ -26,8 +26,6 @@ class persistent_base extends persistent
     /** Table name for the persistent. */
     const TABLE = 'followup_email';
 
-    protected $trackedusers;
-
     /**
      * Return the definition of the properties of this model.
      *
@@ -92,19 +90,20 @@ class persistent_base extends persistent
     /**
      * This is called after the form is saved and a new record is created in the database.
      *
-     * @return array
+     * @return void
      * @throws invalid_persistent_exception
      * @throws coding_exception
      * @throws dml_exception
+     * @throws moodle_exception
      */
 
     public function after_create()
     {
-        return persistent_status::add_enrolled_users($this);
+        persistent_status::add_enrolled_users($this);
     }
 
     /**
-     * Get the records of all users associated with a followup email record of a particular event type
+     * Get the records of all users associated with a followup email record
      *
      * @return persistent_status[] Array of records
      * @throws coding_exception
@@ -132,7 +131,6 @@ class persistent_base extends persistent
      * @return bool
      * @throws coding_exception
      * @throws dml_exception
-     * @TODO: prob use array_filter here
      */
     public function is_user_tracked($userid)
     {
@@ -147,14 +145,35 @@ class persistent_base extends persistent
     }
 
     /**
-     * Is there a monitor end time set, and is it AFTER the current time?
-     *
-     * @return bool
+     * @param bool $result
      * @throws coding_exception
+     * @throws dml_exception
+     * @throws moodle_exception
      */
-    public function outside_monitoring_time(): bool
+    protected function after_update($result)
     {
-        return $this->get('monitorend') && $this->get('monitorend') < new DateTime('now');
+        $statuses = $this->get_tracked_users();
+        foreach ($statuses as $status) {
+            $eventobj = event_factory::create($this, $status);
+            $eventobj->update_times();
+        }
+        parent::after_update($result);
+    }
+
+
+   /**
+     * This does nothing: it's here only to remind me to find a way of returning persistent_base objects instead of
+     * persistents. I could overwrite this method with a cut & paste of the parent's, but that feels unwholesome.
+     *
+     * @param array $filters
+     * @param string $sort
+     * @param string $order
+     * @param int $skip
+     * @param int $limit
+     * @return persistent[]
+     */
+    public static function get_records($filters = array(), $sort = '', $order = 'ASC', $skip = 0, $limit = 0) {
+        return parent::get_records($filters, $sort, $order, $skip, $limit);
     }
 
    /**

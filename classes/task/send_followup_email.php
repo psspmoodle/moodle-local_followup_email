@@ -82,7 +82,6 @@ class send_followup_email extends scheduled_task
         }
     }
 
-
     /**
      * Invoke native Moodle function to send the email
      *

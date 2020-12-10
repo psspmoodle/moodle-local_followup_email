@@ -5,8 +5,6 @@ namespace local_followup_email;
 
 
 use coding_exception;
-use core_date;
-use DateTime;
 use dml_exception;
 use Exception;
 
@@ -21,8 +19,6 @@ class event_enrolment extends event_base
      * event_enrolment constructor.
      * @param persistent_base $base
      * @param persistent_status $status
-     * @throws coding_exception
-     * @throws dml_exception
      */
     public function __construct(persistent_base $base, persistent_status $status)
     {
@@ -31,12 +27,14 @@ class event_enrolment extends event_base
     }
 
     /**
+     * Determines user's enrolment time
+     *
      * @return void
      * @throws dml_exception
      * @throws coding_exception
      * @throws Exception
      */
-    public function set_event_time()
+    public function update_times()
     {
         global $DB;
         $courseid = $this->base->get('courseid');
@@ -49,8 +47,8 @@ class event_enrolment extends event_base
                 AND ue.userid = {$userid}";
         $record = $DB->get_record_sql($sql, null, MUST_EXIST);
         $this->status->set('eventtime', $record->timecreated);
+        $this->update_timetosend();
         $this->status->update();
-        //return (new DateTime(null, core_date::get_server_timezone_object()))->setTimestamp($record->timecreated);
     }
 }
 
