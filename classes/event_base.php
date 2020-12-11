@@ -5,8 +5,10 @@ namespace local_followup_email;
 
 
 use coding_exception;
+use core\invalid_persistent_exception;
 use core_date;
 use DateTime;
+use dml_exception;
 use Exception;
 
 /**
@@ -27,45 +29,72 @@ abstract class event_base
     public $status;
 
     /**
-     * @var $sendinfo string Why a followup email will not be sent
+     * @var $sendinfo string Status info about email
      */
     public $sendinfo;
 
     /**
-     * Event time among child classes differs.
+     * Determining event time differs among event types.
      *
      * @return void
      */
-    abstract protected function update_times();
+    abstract protected function set_eventtime_and_sendtime();
 
     /**
      * @returns void
      * @throws coding_exception
+     * @throws dml_exception
+     * @throws invalid_persistent_exception
      */
-    protected function update_timetosend()
+    public function update_sendtime()
     {
-        $timetosend = $this->is_sendable() ? $this->calculate_timetosend() : 0;
-        $this->status->set('timetosend', $timetosend);
+        $sendtime = 0;
+        if ($this->is_sendable()) {
+            $sendtime = $this->check_for_past_event($this->calculate_sendtime());
+        }
+        $this->status->set('timetosend', $sendtime);
+        $this->status->update();
     }
 
     /**
-     * Default return type is float: need to cast to int or else it will fail persistent validation
+     * Default return type is float: need to cast to int or else it will fail persistent validation.
      *
      * @return int
      * @throws coding_exception
+     * @throws Exception
      */
-    protected function calculate_timetosend()
+    protected function calculate_sendtime()
     {
-        return (int) $this->status->get('eventtime') + $this->base->get('followup_interval');
+        return (int) $this->status->get('eventtime') + (int) $this->base->get('followup_interval');
     }
 
     /**
-     * Generic check to see if an email should be sent, and if not, updates the instance's willnotsendinfo property
-     * with a reason why.
+     * Checks if the current time is greater than the calculated sendtime. We do this because
+     * we don't want the email status page to (confusingly) display sendtime as a time/date in the past—–
+     * instead, we show the sendtime as the next scheduled cron job.
+     *
+     * @param $sendtime
+     * @return int
+     * @throws dml_exception
+     */
+    protected function check_for_past_event($sendtime)
+    {
+        global $DB;
+        $now = (new DateTime('now'))->getTimestamp();
+        if ($sendtime < $now) {
+            $task = $DB->get_record('task_scheduled', ['component' => 'local_followup_email'], 'nextruntime');
+            $sendtime = (int) $task->nextruntime;
+        }
+        return $sendtime;
+    }
+
+    /**
+     * Check to see if an email should be sent and provide status update.
      *
      * @return bool
      * @throws coding_exception
-     * @throws Exception
+     * @throws dml_exception
+     * @see followup_email_status::format_email_status()
      */
     public function is_sendable()
     {
@@ -80,23 +109,23 @@ abstract class event_base
             $this->sendinfo = 'noeventrecorded';
             return $sendable;
         }
-        $sendtime = $this->calculate_timetosend();
+        $sendtime = $this->calculate_sendtime();
         $monitorstart = $this->base->get('monitorstart');
         $monitorend = $this->base->get('monitorend');
-        $now = (new DateTime("now", core_date::get_server_timezone_object()))->getTimestamp();
         if (($monitorstart && $monitorstart < $eventtime) && ($monitorend && $monitorend < $sendtime)) {
             $this->sendinfo = 'sendaftermonitoring';
         } elseif ($monitorstart && $monitorstart > $eventtime)  {
             $this->sendinfo = 'eventbeforemonitoring';
         } elseif ($monitorend && $monitorend < $sendtime) {
             $this->sendinfo = 'sendaftermonitoring';
+        } elseif ($sendtime != $this->check_for_past_event($sendtime)) {
+            $this->sendinfo = 'sendingasap';
+            $sendable = true;
         }
-
         else {
             $this->sendinfo = 'sending';
             $sendable = true;
         }
-
         return $sendable;
     }
 

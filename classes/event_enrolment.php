@@ -27,14 +27,14 @@ class event_enrolment extends event_base
     }
 
     /**
-     * Determines user's enrolment time
+     * Determines user's enrolment time and time to send email
      *
      * @return void
      * @throws dml_exception
      * @throws coding_exception
      * @throws Exception
      */
-    public function update_times()
+    public function set_eventtime_and_sendtime()
     {
         global $DB;
         $courseid = $this->base->get('courseid');
@@ -47,7 +47,7 @@ class event_enrolment extends event_base
                 AND ue.userid = {$userid}";
         $record = $DB->get_record_sql($sql, null, MUST_EXIST);
         $this->status->set('eventtime', $record->timecreated);
-        $this->update_timetosend();
+        $this->update_sendtime();
         $this->status->update();
     }
 }

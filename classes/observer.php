@@ -205,7 +205,7 @@ class observer
             $base = new persistent_base(0, persistent_base::extract_record($row, 'fe_'));
             $status = new persistent_status(0, persistent_status::extract_record($row, 'fes_'));
             $eventobj = event_factory::create($base, $status);
-            $eventobj->update_times($data['timecreated']);
+            $eventobj->set_eventtime_and_sendtime($data['timecreated']);
         }
     }
 }

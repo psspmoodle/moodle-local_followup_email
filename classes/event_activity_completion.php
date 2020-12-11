@@ -7,10 +7,7 @@ namespace local_followup_email;
 use coding_exception;
 use completion_info;
 use core\invalid_persistent_exception;
-use core_date;
-use DateTime;
-use Exception;
-use moodle_exception;
+use dml_exception;
 use stdClass;
 
 /**
@@ -25,7 +22,6 @@ class event_activity_completion extends event_base
      * @param persistent_base $base Database record
      * @param persistent_status $status Database record
      */
-
     public function __construct(persistent_base $base, persistent_status $status)
     {
         $this->base = $base;
@@ -33,15 +29,15 @@ class event_activity_completion extends event_base
     }
 
     /**
-     * Determines activity completion time
+     * Determines activity completion time and time to send email
      *
      * @param int $eventtime
      * @return void
      * @throws invalid_persistent_exception
      * @throws coding_exception
+     * @throws dml_exception
      */
-
-    public function update_times($eventtime = 0)
+    public function set_eventtime_and_sendtime($eventtime = 0)
     {
         if (!$eventtime) {
             $cm = new stdClass();
@@ -50,10 +46,12 @@ class event_activity_completion extends event_base
             $course->id = $this->base->get('courseid');
             $completioninfo = new completion_info($course);
             $completiondata = $completioninfo->get_data($cm, false, $this->status->get('userid'));
-            $eventtime = $completiondata->timemodified;
+            if ($completiondata->completionstate > 0) {
+                $eventtime = $completiondata->timemodified;
+            }
         }
         $this->status->set('eventtime', $eventtime);
-        $this->update_timetosend();
+        $this->update_sendtime();
         $this->status->update();
     }
 }

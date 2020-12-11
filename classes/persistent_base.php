@@ -72,6 +72,8 @@ class persistent_base extends persistent
     }
 
     /**
+     * Use persistent hook to remove any followup_email_status records associated with this followup email instance.
+     *
      * @return bool|void
      * @throws coding_exception
      */
@@ -88,7 +90,7 @@ class persistent_base extends persistent
     }
 
     /**
-     * This is called after the form is saved and a new record is created in the database.
+     * Use persistent hook to add enroled users after the form is saved for the first time.
      *
      * @return void
      * @throws invalid_persistent_exception
@@ -99,17 +101,17 @@ class persistent_base extends persistent
 
     public function after_create()
     {
-        persistent_status::add_enrolled_users($this);
+        persistent_status::add_enroled_users($this);
     }
 
     /**
-     * Get the records of all users associated with a followup email record
+     * Get the status records of all users associated with a followup email record
      *
      * @return persistent_status[] Array of records
      * @throws coding_exception
      * @throws dml_exception
      */
-    public function get_tracked_users()
+    public function get_statuses()
     {
         global $DB;
         $statusrecords = [];
@@ -127,6 +129,9 @@ class persistent_base extends persistent
     }
 
     /**
+     * Check if the user is tracked on a followup email instance
+     *
+     * @see persistent_status::add_users()
      * @param $userid
      * @return bool
      * @throws coding_exception
@@ -134,17 +139,17 @@ class persistent_base extends persistent
      */
     public function is_user_tracked($userid)
     {
-        if ($trackedusers = $this->get_tracked_users()) {
-            foreach($trackedusers as $user) {
-                if ($user->get('userid') == $userid) {
-                    return true;
-                }
+        foreach($this->get_statuses() as $status) {
+            if ($status->get('userid') == $userid) {
+                return true;
             }
         }
         return false;
     }
 
     /**
+     * Use persistent hook to update sendtime after possible form changes.
+     *
      * @param bool $result
      * @throws coding_exception
      * @throws dml_exception
@@ -152,31 +157,17 @@ class persistent_base extends persistent
      */
     protected function after_update($result)
     {
-        $statuses = $this->get_tracked_users();
+        $statuses = $this->get_statuses();
         foreach ($statuses as $status) {
             $eventobj = event_factory::create($this, $status);
-            $eventobj->update_times();
+            $eventobj->update_sendtime();
         }
         parent::after_update($result);
     }
 
-
    /**
-     * This does nothing: it's here only to remind me to find a way of returning persistent_base objects instead of
-     * persistents. I could overwrite this method with a cut & paste of the parent's, but that feels unwholesome.
-     *
-     * @param array $filters
-     * @param string $sort
-     * @param string $order
-     * @param int $skip
-     * @param int $limit
-     * @return persistent[]
-     */
-    public static function get_records($filters = array(), $sort = '', $order = 'ASC', $skip = 0, $limit = 0) {
-        return parent::get_records($filters, $sort, $order, $skip, $limit);
-    }
-
-   /**
+    * Custom persistent field validation.
+    *
      * @param $cmid
      * @return bool|lang_string
      * @throws coding_exception
@@ -193,6 +184,8 @@ class persistent_base extends persistent
     }
 
     /**
+     * Custom persistent field validation.
+     *
      * @param $followup_interval
      * @return bool|lang_string
      */

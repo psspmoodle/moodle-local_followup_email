@@ -53,5 +53,7 @@ $string['sendaftermonitoring'] = 'Send time occurs after monitor end. Email will
 $string['noeventrecorded'] = 'No event recorded';
 $string['emailsentoutsidemonitoring'] = 'Note: A monitoring rule is in effect. If this rule was added after the Followup Email instance was created, this email may have been sent prior to making that change.';
 $string['sending'] = 'Sending ';
+$string['sendingasap'] = 'Sending (ASAP) ';
+$string['sendingasapinfo'] = 'The event occurred at a time in the past greater than the specified interval. The email will be sent during the next execution of the Followup Email scheduled task.';
 $string['alreadycompletedcourse'] = 'User has already completed course.';
 $string['followup_email:managefollowupemail'] = 'Manage Followup Emails';

@@ -22,11 +22,11 @@ require_login($course);
 $context = context_system::instance();
 require_capability('local/followup_email:managefollowupemail', $context);
 
-$persistent = new persistent_base($followupid);
-$records = $persistent->get_tracked_users();
-$statuspage = new followup_email_status($persistent, $records);
+$base = new persistent_base($followupid);
+$statuses = $base->get_statuses();
+$statuspage = new followup_email_status($base, $statuses);
 
-$title = $persistent->get('email_subject');
+$title = $base->get('email_subject');
 $PAGE->set_pagelayout('incourse');
 $PAGE->set_title($title);
 $PAGE->set_heading($course->fullname);

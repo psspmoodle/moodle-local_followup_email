@@ -12,7 +12,6 @@ use core_user;
 use DateTime;
 use dml_exception;
 use local_followup_email\event\followup_email_sent;
-use local_followup_email\event_activity_completion;
 use local_followup_email\persistent_base;
 use local_followup_email\persistent_status;
 use moodle_exception;
@@ -62,20 +61,17 @@ class send_followup_email extends scheduled_task
         $rows = $DB->get_records_sql($sql, []);
         foreach ($rows as $row) {
             $base_data = persistent_base::extract_record($row, 'fe_');
-            $persistent = new persistent_base(0, $base_data);
-            // Bail if monitoring applies
-            if ($persistent->outside_monitoring_time()) {
-                continue;
-            }
+            $base = new persistent_base(0, $base_data);
             $status_data = persistent_status::extract_record($row, 'fes_');
             $status = new persistent_status(0, $status_data);
-            if (!$status->get('email_sent') && $status_data->timetosend <= new DateTime('now')) {
+            if (!$status->get('email_sent')
+            && $status_data->timetosend <= (new DateTime('now'))->getTimestamp()
+            && $status_data->timetosend !== 0) {
                 $user = array_filter((array)$row, function ($key) {
                     return !preg_match('/^fes?_/', $key);
                 }, ARRAY_FILTER_USE_KEY);
-                $this->send_followup_email($persistent, (object)$user);
-                $this->log_followup_email($persistent, (object)$user, $persistent->get('courseid'), 'event_activitycompletion');
-                $status = new persistent_status(0, $status_data);
+                $this->send_followup_email($base, (object)$user);
+                $this->log_followup_email($base, (object)$user, $base->get('courseid'), 'event_activitycompletion');
                 $status->set('email_sent', 1);
                 $status->update();
             }
@@ -122,9 +118,12 @@ class send_followup_email extends scheduled_task
     }
 
     /**
+     * Simple filter for macro replacement. Needs development.
+     *
      * @param $user
      * @param $body
      * @return mixed
+     * @TODO: Add more macros.
      */
     private function filter($user, $body) {
         $fields = array(

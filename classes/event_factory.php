@@ -5,20 +5,18 @@ namespace local_followup_email;
 
 
 use coding_exception;
-use dml_exception;
 use moodle_exception;
 
 class event_factory
 {
 
     /**
-     * Create an object depending on the node type.
+     * Create an object depending on the event type.
      *
      * @param $base persistent_base
      * @param $status persistent_status
      * @return event_base
      * @throws coding_exception
-     * @throws dml_exception
      * @throws moodle_exception
      */
     public static function create(persistent_base $base, persistent_status $status)

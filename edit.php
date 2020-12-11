@@ -67,7 +67,7 @@ if ($followup_form->is_cancelled()) {
                 $persistent->update();
                 if ($flush) {
                     persistent_status::remove_users($persistent);
-                    persistent_status::add_enrolled_users($persistent);
+                    persistent_status::add_enroled_users($persistent);
                 }
             }
             notification::success(get_string('changessaved'));

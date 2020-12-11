@@ -46,7 +46,7 @@ class form extends persistent {
         $mform->hideIf('cmid', 'event', 'eq', 2);
         $mform->setDefault('cmid', 0);
         // When it should be sent
-        $options = ['optional' => false, 'defaultunit' => "86400"];
+        $options = ['optional' => false, 'defaultunit' => 86400];
         $mform->addElement('duration', 'followup_interval', get_string('followup_interval', 'local_followup_email'), $options);
         $mform->addHelpButton('followup_interval', 'followup_interval', 'local_followup_email');
 

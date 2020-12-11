@@ -6,8 +6,6 @@ defined('MOODLE_INTERNAL') || die();
 
 use coding_exception;
 use core\persistent;
-use core_date;
-use DateTime;
 use dml_exception;
 use lang_string;
 use local_followup_email\event_factory;
@@ -29,10 +27,6 @@ class followup_email_status implements renderable, templatable
     public $records;
     // Related course module title
     public $activity;
-    // Monitor start
-    public $monitorstart;
-    // Monitor end
-    public $monitorend;
 
     /**
      * followup_email_status constructor.
@@ -45,8 +39,6 @@ class followup_email_status implements renderable, templatable
     public function __construct(persistent_base $base, array $records)
     {
         $this->base = $base;
-        $this->monitorstart = $base->get('monitorstart');
-        $this->monitorend = $base->get('monitorend');
         $this->records = $this->process_records($records);
         if ($cmid = $base->get('cmid')) {
             $activity = (get_fast_modinfo($base->get('courseid'))->get_cm($cmid));
@@ -55,6 +47,8 @@ class followup_email_status implements renderable, templatable
     }
 
     /**
+     * Status table output
+     *
      * @param array $records
      * @return array|null
      * @throws coding_exception
@@ -86,15 +80,15 @@ class followup_email_status implements renderable, templatable
     }
 
     /**
+     * Determine
+     *
      * @param persistent $record
      * @return array
      * @throws moodle_exception
      * @throws coding_exception
-     * @throws dml_exception
      * @throws Exception
      */
     public function format_email_status(persistent $record) {
-        global $DB;
         $emailstatus = array();
         $eventobj = event_factory::create($this->base, $record);
         $eventobj->is_sendable();
@@ -129,8 +123,14 @@ class followup_email_status implements renderable, templatable
                 $emailstatus['sendtime'] = $this->gs('sending') . userdate($record->get('timetosend'));
                 $emailstatus['cellcolor'] = 'bg-y50';
                 break;
+            case 'sendingasap':
+                $emailstatus['sendtime'] = $this->gs('sendingasap') . userdate($record->get('timetosend'));
+                $emailstatus['sendinfo'] = $this->gs('sendingasapinfo');
+                $emailstatus['cellcolor'] = 'bg-y50';
+                break;
             case 'alreadycompletedcourse':
                 $emailstatus['sendinfo'] = $this->gs('alreadycompletedcourse');
+                break;
         }
         if (!array_key_exists('eventtime', $emailstatus)) {
             $emailstatus['eventtime'] = userdate($record->get('eventtime'));
@@ -150,9 +150,9 @@ class followup_email_status implements renderable, templatable
         return get_string($identifier, 'local_followup_email');
     }
 
-
-
     /**
+     * Get language string for event type
+     *
      * @param $event
      * @return string
      */
@@ -174,6 +174,8 @@ class followup_email_status implements renderable, templatable
     }
 
     /**
+     * Get user's full name
+     *
      * @param $userid
      * @return string
      * @throws dml_exception
@@ -188,6 +190,8 @@ class followup_email_status implements renderable, templatable
     }
 
     /**
+     * Prepare context for mustache template
+     *
      * @param renderer_base $output
      * @return array|stdClass
      * @throws coding_exception
@@ -198,8 +202,8 @@ class followup_email_status implements renderable, templatable
         $courseid = $this->base->get('courseid');
         $eventlabel = self::get_event_label($this->base->get('event'));
         $data = new stdClass();
-        $data->monitorstarttime = $this->monitorstart ? userdate($this->monitorstart) : 0;
-        $data->monitorendtime = $this->monitorend ? userdate($this->monitorend) : 0;
+        $data->monitorstarttime = $this->base->get('monitorstart') ? userdate($this->base->get('monitorstart')) : 0;
+        $data->monitorendtime = $this->base->get('monitorend') ? userdate($this->base->get('monitorend')) : 0;
         $data->eventlabel = get_string($eventlabel, 'local_followup_email', $this->activity);
         $data->rows = $this->records;
         $data->indexurl = new moodle_url('/local/followup_email/index.php', array('courseid' => $courseid));

@@ -54,7 +54,7 @@ class persistent_status extends persistent
      * @throws coding_exception|invalid_persistent_exception
      * @throws moodle_exception
      */
-    public static function add_enrolled_users(persistent_base $persistent)
+    public static function add_enroled_users(persistent_base $persistent)
     {
         $context = context_course::instance($persistent->get('courseid'));
         // We need to limit the users by group if there is one supplied, and we only need the user ids
@@ -89,7 +89,7 @@ class persistent_status extends persistent
                 $status->set('followup_email_id', $base->get('id'));
                 // Send to event_factory for further processing
                 $eventobj = event_factory::create($base, $status->create());
-                $eventobj->update_times();
+                $eventobj->set_eventtime_and_sendtime();
             }
         }
     }

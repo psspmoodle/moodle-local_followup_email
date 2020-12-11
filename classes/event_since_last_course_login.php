@@ -35,7 +35,7 @@ class event_since_last_course_login extends event_base
      * @throws dml_exception
      * @throws Exception
      */
-    public function update_times()
+    public function set_eventtime_and_sendtime()
     {
         global $DB;
         $userid = $this->status->get('userid');
@@ -43,7 +43,7 @@ class event_since_last_course_login extends event_base
         $lastaccess = $DB->get_record('user_lastaccess', array('userid' => $userid, 'courseid' => $courseid));
         $eventtime = $lastaccess ? $lastaccess->timeaccess : 0;
         $this->status->set('eventtime', $eventtime);
-        $this->update_timetosend();
+        $this->update_sendtime();
         $this->status->update();
     }
 
