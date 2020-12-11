@@ -26,7 +26,7 @@ $string['group'] = 'Group';
 $string['modify'] = 'Modify';
 $string['specifycoursemodule'] = 'Please specify an activity to monitor.';
 $string['neverloggedin'] = 'Never';
-$string['editnotice'] = 'Note: Changing the <b>Event to monitor</b> or <b>Limit to users of group</b> values and then saving the form will flush tracked users and remove any tracking data.';
+$string['editnotice'] = 'Note: Changing the <b>Event to monitor</b> or <b>Limit to users of group</b> values and then saving the form will flush tracked users and remove any status data.';
 $string['userenrolmentcreated'] = 'The newly enrolled user may have been added to one or more Followup Emails in this course. Check the <a href="{$a}" target="_blank">Followup Email admin page</a> for details.';
 $string['eventtomonitor'] = 'Event to monitor:';
 $string['activitytomonitor'] = 'Activity to monitor: ';

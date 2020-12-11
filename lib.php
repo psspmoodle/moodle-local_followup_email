@@ -2,12 +2,13 @@
 
 defined('MOODLE_INTERNAL') || die;
 
+
 /**
- * This function extends the navigation with the report items
+ * This function extends the course navigation on the course admin page
  *
- * @param navigation_node $navigation The navigation node to extend
- * @param stdClass $course The course to object for the report
- * @param context_course $context The context of the course
+ * @param $navigation
+ * @param $course
+ * @param $context
  * @throws coding_exception
  * @throws moodle_exception
  */

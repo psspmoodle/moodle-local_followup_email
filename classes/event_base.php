@@ -52,7 +52,7 @@ abstract class event_base
         if ($this->is_sendable()) {
             $sendtime = $this->check_for_past_event($this->calculate_sendtime());
         }
-        $this->status->set('timetosend', $sendtime);
+        $this->status->set('sendtime', $sendtime);
         $this->status->update();
     }
 
