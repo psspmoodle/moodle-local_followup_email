@@ -65,8 +65,8 @@ class send_followup_email extends scheduled_task
             $status_data = persistent_status::extract_record($row, 'fes_');
             $status = new persistent_status(0, $status_data);
             if (!$status->get('email_sent')
-            && $status_data->timetosend <= (new DateTime('now'))->getTimestamp()
-            && $status_data->timetosend !== 0) {
+            && $status_data->sendtime <= (new DateTime('now'))->getTimestamp()
+            && $status_data->sendtime !== 0) {
                 $user = array_filter((array)$row, function ($key) {
                     return !preg_match('/^fes?_/', $key);
                 }, ARRAY_FILTER_USE_KEY);

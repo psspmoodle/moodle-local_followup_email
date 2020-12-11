@@ -174,8 +174,8 @@ class observer
     }
 
     /**
-     * Checks the event data for a userid match, and updates the record with a timetosend value
-     * unless 1) an email has already been sent or 2) there's already a timetosend (which means
+     * Checks the event data for a userid match, and updates the record with a sendtime value
+     * unless 1) an email has already been sent or 2) there's already a sendtime (which means
      * the activity has already been marked as completed).
      *
      * Mechanism for the activity completion type.

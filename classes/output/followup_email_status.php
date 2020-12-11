@@ -120,11 +120,11 @@ class followup_email_status implements renderable, templatable
                 $emailstatus['iconcolor'] = 'g600';
                 break;
             case 'sending':
-                $emailstatus['sendtime'] = $this->gs('sending') . userdate($record->get('timetosend'));
+                $emailstatus['sendtime'] = $this->gs('sending') . userdate($record->get('sendtime'));
                 $emailstatus['cellcolor'] = 'bg-y50';
                 break;
             case 'sendingasap':
-                $emailstatus['sendtime'] = $this->gs('sendingasap') . userdate($record->get('timetosend'));
+                $emailstatus['sendtime'] = $this->gs('sendingasap') . userdate($record->get('sendtime'));
                 $emailstatus['sendinfo'] = $this->gs('sendingasapinfo');
                 $emailstatus['cellcolor'] = 'bg-y50';
                 break;

@@ -34,7 +34,7 @@ class persistent_status extends persistent
                 'type' => PARAM_INT,
                 'default' => 0
             ),
-            'timetosend' => array(
+            'sendtime' => array(
                 'type' => PARAM_INT,
                 'default' => 0
             ),
